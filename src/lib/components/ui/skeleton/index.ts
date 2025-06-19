@@ -1,11 +1,7 @@
-import type { ComponentProps } from 'svelte';
-import Root from './skeleton.svelte';
-
-type SkeletonProps = ComponentProps<typeof Root>;
+import Root from "./skeleton.svelte";
 
 export {
 	Root,
 	//
 	Root as Skeleton,
-	type SkeletonProps
 };

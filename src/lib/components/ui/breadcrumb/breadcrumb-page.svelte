@@ -7,15 +7,17 @@
 		class: className,
 		children,
 		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLElement>> = $props();
+	}: WithElementRef<HTMLAttributes<HTMLSpanElement>> = $props();
 </script>
 
-<div
+<span
 	bind:this={ref}
-	data-slot="sidebar-group"
-	data-sidebar="group"
-	class={cn("relative flex w-full min-w-0 flex-col p-2", className)}
+	data-slot="breadcrumb-page"
+	role="link"
+	aria-disabled="true"
+	aria-current="page"
+	class={cn("text-foreground font-normal", className)}
 	{...restProps}
 >
 	{@render children?.()}
-</div>
+</span>

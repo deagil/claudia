@@ -1,11 +1,7 @@
-import type { ComponentProps } from 'svelte';
-import Root from './input.svelte';
-
-type InputProps = ComponentProps<typeof Root>;
+import Root from "./input.svelte";
 
 export {
 	Root,
 	//
 	Root as Input,
-	type InputProps
 };
