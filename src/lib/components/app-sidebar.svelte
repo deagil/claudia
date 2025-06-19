@@ -1,68 +1,35 @@
 <script lang="ts">
-	import { Button } from './ui/button';
-	import {
-		useSidebar,
-		Sidebar,
-		SidebarContent,
-		SidebarFooter,
-		SidebarHeader,
-		SidebarMenu
-	} from './ui/sidebar';
-	import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-	import { goto } from '$app/navigation';
-	import PlusIcon from './icons/plus.svelte';
-	import type { User } from '$lib/server/db/schema';
-	import SidebarUserNav from './sidebar-user-nav.svelte';
-	import { SidebarHistory } from './sidebar-history';
-
-	let { user }: { user?: User } = $props();
-
-	const context = useSidebar();
+    import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+    import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
+    import Chat from "./chat.svelte";
+	import { convertToUIMessages } from "$lib/utils/chat.js";
+    export let data;
 </script>
 
-<Sidebar class="group-data-[side=left]:border-r-0">
-	<SidebarHeader>
-		<SidebarMenu>
-			<div class="flex h-10 flex-row items-center justify-between md:h-[34px]">
-				<a
-					href="/"
-					onclick={() => {
-						context.setOpenMobile(false);
-					}}
-					class="flex flex-row items-center gap-3"
-				>
-					<span class="hover:bg-muted cursor-pointer rounded-md px-2 text-lg font-semibold">
-						Chatbot
-					</span>
-				</a>
-				<Tooltip>
-					<TooltipTrigger>
-						{#snippet child({ props })}
-							<Button
-								{...props}
-								variant="ghost"
-								type="button"
-								class="h-fit p-2"
-								onclick={() => {
-									context.setOpenMobile(false);
-									goto('/', { invalidateAll: true });
-								}}
-							>
-								<PlusIcon />
-							</Button>
-						{/snippet}
-					</TooltipTrigger>
-					<TooltipContent align="end">New Chat</TooltipContent>
-				</Tooltip>
-			</div>
-		</SidebarMenu>
-	</SidebarHeader>
-	<SidebarContent>
-		<SidebarHistory {user} />
-	</SidebarContent>
-	<SidebarFooter>
-		{#if user}
-			<SidebarUserNav {user} />
-		{/if}
-	</SidebarFooter>
-</Sidebar>
+<Sidebar.Root variant="floating" side="right">
+    <Sidebar.Header>
+        <Sidebar.Menu>
+            <Sidebar.MenuItem>
+                <Sidebar.MenuButton size="lg">
+                    <a href="##">
+                        <div
+                            class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
+                        >
+                            <GalleryVerticalEndIcon class="size-4" />
+                        </div>
+                        <div class="flex flex-col gap-0.5 leading-none">
+                            <span class="font-medium">Documentation</span>
+                            <span class="">v1.0.0</span>
+                        </div>
+                    </a>
+                </Sidebar.MenuButton>
+            </Sidebar.MenuItem>
+        </Sidebar.Menu>
+    </Sidebar.Header>
+    <Chat
+    chat={data?.chat}
+    initialMessages={convertToUIMessages(data?.messages ?? [])}
+    readonly={data?.user?.id !== data?.chat?.userId}
+    user={data?.user}
+/>
+</Sidebar.Root>

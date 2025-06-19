@@ -1,5 +1,4 @@
 <script lang="ts">
-	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import { SidebarInset, SidebarProvider } from '$lib/components/ui/sidebar';
 	import { ChatHistory } from '$lib/hooks/chat-history.svelte.js';
 
@@ -11,6 +10,6 @@
 </script>
 
 <SidebarProvider open={!data.sidebarCollapsed}>
-	<AppSidebar user={data.user} />
+	<!-- <AppSidebar data={data} /> -->
 	<SidebarInset>{@render children?.()}</SidebarInset>
 </SidebarProvider>
