@@ -10,6 +10,5 @@
 </script>
 
 <SidebarProvider open={!data.sidebarCollapsed}>
-	<!-- <AppSidebar data={data} /> -->
 	<SidebarInset>{@render children?.()}</SidebarInset>
 </SidebarProvider>

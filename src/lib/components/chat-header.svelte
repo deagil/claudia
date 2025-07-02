@@ -10,6 +10,13 @@
 	import type { Chat, User } from '$lib/server/db/schema';
 	import VisibilitySelector from './visibility-selector.svelte';
 	import VercelIcon from './icons/vercel.svelte';
+	import SparklesIcon from '@lucide/svelte/icons/sparkles';
+	import MessageCircleOff from '@lucide/svelte/icons/message-circle-off';
+	import MessageCircle from '@lucide/svelte/icons/message-circle';
+	import * as Menubar from '$lib/components/ui/menubar/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import SidebarTrigger from './ui/sidebar/sidebar-trigger.svelte';
+
 
 	let {
 		user,
@@ -21,12 +28,19 @@
 		readonly: boolean;
 	} = $props();
 
+	let bookmarks = $state(false);
+	let fullUrls = $state(true);
+	let profileRadioValue = $state('benoit');
+
 	const sidebar = useSidebar();
+
+	function closeChat() {
+		// Your logic here
+		sidebar.toggle();
+	}
 </script>
 
-<header class="bg-background sticky top-0 flex items-center gap-2 p-2">
-	<SidebarToggle />
-
+<header class="bg-green-200 sticky top-0 flex items-right gap-2 p-2">
 	{#if !sidebar.open || (innerWidth.current ?? 768) < 768}
 		<Tooltip>
 			<TooltipTrigger>
@@ -50,24 +64,78 @@
 		</Tooltip>
 	{/if}
 
-	{#if !readonly}
+	<!-- {#if !readonly}
 		<ModelSelector class="order-1 md:order-2" />
-	{/if}
+	{/if} -->
 
 	{#if !readonly && chat}
 		<VisibilitySelector {chat} class="order-1 md:order-3" />
 	{/if}
 
-	{#if !user}
+	<!-- {#if !user}
 		<Button href="/signin" class="order-5 px-2 py-1.5 md:h-[34px]">Sign In</Button>
-	{/if}
+	{/if} -->
 
-	<Button
-		class="order-4 hidden h-fit bg-zinc-900 px-2 py-1.5 text-zinc-50 hover:bg-zinc-800 md:ml-auto md:flex md:h-[34px] dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-		href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot-svelte&project-name=my-awesome-chatbot&repository-name=my-awesome-chatbot&demo-title=AI%20Chatbot&demo-description=An%20Open-Source%20AI%20Chatbot%20Template%20Built%20With%20Next.js%20and%20the%20AI%20SDK%20by%20Vercel&demo-url=https%3A%2F%2Fsvelte-chat.vercel.ai&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22grok%22%2C%22integrationSlug%22%3A%22xai%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22api-key%22%2C%22integrationSlug%22%3A%22groq%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D"
-		target="_blank"
-	>
-		<VercelIcon size={16} />
-		Deploy with Vercel
-	</Button>
+	<Menubar.Root>
+		<Menubar.Menu>
+			<!-- Chat -->
+			<Menubar.Trigger><MessageCircle class="size-4 mr-1"/>Chat</Menubar.Trigger>
+			<Menubar.Content>
+				<Menubar.Item>
+					New Chat <Menubar.Shortcut>⌘T</Menubar.Shortcut>
+				</Menubar.Item>
+				<Menubar.Separator />
+				<Menubar.Sub>
+					<Menubar.SubTrigger>History</Menubar.SubTrigger>
+					<Menubar.SubContent>
+						<Menubar.Item>Email link</Menubar.Item>
+						<Menubar.Item>Messages</Menubar.Item>
+						<Menubar.Item>Notes</Menubar.Item>
+					</Menubar.SubContent>
+				</Menubar.Sub>
+				<Menubar.Separator />
+				<!-- <Menubar.Item>
+					Print... <Menubar.Shortcut>⌘P</Menubar.Shortcut>
+				</Menubar.Item> -->
+				<Menubar.Item>
+					<button onclick={() => closeChat()}>
+						Hide Chat 
+					</button>
+					<Menubar.Shortcut>⌘B</Menubar.Shortcut>
+				</Menubar.Item>
+			</Menubar.Content>
+		</Menubar.Menu>
+		 <Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+		<Menubar.Menu>
+			<Menubar.Trigger>Tools</Menubar.Trigger>
+			<Menubar.Content>
+				<Menubar.CheckboxItem bind:checked={bookmarks}
+					>Always Show Bookmarks Bar</Menubar.CheckboxItem
+				>
+				<Menubar.CheckboxItem bind:checked={fullUrls}>Always Show Full URLs</Menubar.CheckboxItem>
+				<Menubar.Separator />
+				<Menubar.Item>
+					Summarise Page <Menubar.Shortcut>⇪S</Menubar.Shortcut>
+				</Menubar.Item>
+				<Menubar.Item>
+					Summarise Chat <Menubar.Shortcut>⌘⇪S</Menubar.Shortcut>
+				</Menubar.Item>
+			</Menubar.Content>
+		</Menubar.Menu>
+		<Menubar.Menu>
+			<Menubar.Trigger>Personalise</Menubar.Trigger>
+			<Menubar.Content>
+				<Menubar.RadioGroup bind:value={profileRadioValue}>
+					<Menubar.RadioItem value="andy">Andy</Menubar.RadioItem>
+					<Menubar.RadioItem value="benoit">Benoit</Menubar.RadioItem>
+					<Menubar.RadioItem value="Luis">Luis</Menubar.RadioItem>
+				</Menubar.RadioGroup>
+				<Menubar.Separator />
+				<Menubar.Item inset>Edit...</Menubar.Item>
+				<Menubar.Separator />
+				<Menubar.Item inset>Add Profile...</Menubar.Item>
+			</Menubar.Content>
+		</Menubar.Menu>
+	</Menubar.Root>
+	<SidebarTrigger/>
 </header>

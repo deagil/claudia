@@ -10,8 +10,9 @@ import { compare } from 'bcrypt-ts';
 import { err, ok, safeTry } from 'neverthrow';
 import { z } from 'zod';
 
-export function load({ locals }) {
-	if (locals.session) {
+export async function load({ locals }) {
+	const { session } = await locals.safeGetSession();
+	if (session) {
 		return redirect(307, '/');
 	}
 }
