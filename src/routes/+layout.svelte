@@ -7,6 +7,6 @@
 </script>
 
 <ThemeProvider attribute="class" disableTransitionOnChange>
-	<Toaster position="top-center" />
+	<Toaster richColors position="top-center" />
 	{@render children()}
 </ThemeProvider>

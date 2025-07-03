@@ -67,16 +67,20 @@
 </script>
 
 <!-- This component is responsible for rendering the chat interface, including the header, messages, and input form. -->
-<div class=" m-1 flex flex-1 min-w-0 max-w-[{SIDEBAR_WIDTH}] flex-col bg-blue-200 overflow-y-auto">
-	<div class="bg-green-100"><ChatHeader {user} {chat} {readonly} /></div>
+<!--DEBUG <div class=" m-1 flex flex-1 min-w-0 max-w-[{SIDEBAR_WIDTH}] flex-col bg-blue-200 overflow-y-auto"> -->
+
+<div class=" m-1 flex flex-1 min-w-0 max-w-[{SIDEBAR_WIDTH}] flex-col overflow-y-auto">
+	<!-- debug green -->
+	<div class=""><ChatHeader {user} {chat} {readonly} /></div>
 	<Messages
 		{readonly}
 		loading={chatClient.status === 'streaming' || chatClient.status === 'submitted'}
 		messages={chatClient.messages}
 	/>
 
+	<!-- debug red -->
 	<form
-		class="bg-background m-1 mx-auto flex w-full gap-2 bg-red-200 px-4 pb-4 md:max-w-3xl md:pb-6"
+		class=" m-1 mx-auto flex w-full gap-2 px-4 pb-4 md:max-w-3xl md:pb-6"
 	>
 		{#if !readonly}
 			<MultimodalInput {attachments} {user} {chatClient} class="flex-1" />

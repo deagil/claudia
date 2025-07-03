@@ -10,6 +10,12 @@
 	import { navigationMenuTriggerStyle } from '$lib/components/ui/navigation-menu/navigation-menu-trigger.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import MoveLeft from '@lucide/svelte/icons/move-left';
+	import { navigating } from '$app/stores';
+	import { expoOut } from 'svelte/easing';
+	import { slide } from 'svelte/transition';
 
 
 	let { data, children } = $props();
@@ -23,6 +29,10 @@
 	chatHistory.setContext();
 	data.selectedChatModel.setContext();
 
+	function toggleCommand() {
+		commandOpen = !commandOpen;
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
@@ -35,41 +45,13 @@
 		}
 	}
 
-	const components: { title: string; href: string; description: string }[] = [
+	const dataMenuItems: { title: string; href: string; description: string }[] = [
 		{
-			title: 'Alert Dialog',
-			href: '/docs/primitives/alert-dialog',
+			title: 'Tables',
+			href: '/app/tables',
 			description:
-				'A modal dialog that interrupts the user with important content and expects a response.'
+				'Document your tables, view record history.'
 		},
-		{
-			title: 'Hover Card',
-			href: '/docs/primitives/hover-card',
-			description: 'For sighted users to preview content available behind a link.'
-		},
-		{
-			title: 'Progress',
-			href: '/docs/primitives/progress',
-			description:
-				'Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.'
-		},
-		{
-			title: 'Scroll-area',
-			href: '/docs/primitives/scroll-area',
-			description: 'Visually or semantically separates content.'
-		},
-		{
-			title: 'Tabs',
-			href: '/docs/primitives/tabs',
-			description:
-				'A set of layered sections of content—known as tab panels—that are displayed one at a time.'
-		},
-		{
-			title: 'Tooltip',
-			href: '/docs/primitives/tooltip',
-			description:
-				'A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.'
-		}
 	];
 
 	type ListItemProps = HTMLAttributes<HTMLAnchorElement> & {
@@ -113,7 +95,7 @@
 				<NavigationMenu.Root viewport={false}>
 					<NavigationMenu.List>
 						<NavigationMenu.Item>
-							<NavigationMenu.Trigger>Home</NavigationMenu.Trigger>
+							<NavigationMenu.Trigger>Claudia</NavigationMenu.Trigger>
 							<NavigationMenu.Content>
 								<ul class="grid gap-2 p-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
 									<li class="row-span-3">
@@ -122,9 +104,12 @@
 										>
 											{#snippet child({ props })}
 												<a {...props} href="/">
-													<div class="mt-4 mb-2 text-lg font-medium">shadcn-svelte</div>
+													<div class="flex flex-row items-center gap-3">											
+														<MoveLeft class="mb-2 size-4" />
+														<div class="mt-4 mb-2 text-lg font-medium">Exit App</div>
+													</div>
 													<p class="text-muted-foreground text-sm leading-tight">
-														Beautifully designed components built with Tailwind CSS.
+														Return to the marketing site; you won't be signed out of Claudia.
 													</p>
 												</a>
 											{/snippet}
@@ -148,11 +133,20 @@
 								</ul>
 							</NavigationMenu.Content>
 						</NavigationMenu.Item>
+						<Separator orientation="vertical" class="data-[orientation=vertical]:h-4" />
+
 						<NavigationMenu.Item>
-							<NavigationMenu.Trigger>Components</NavigationMenu.Trigger>
+							<NavigationMenu.Link>
+								{#snippet child()}
+									<a href="/docs" class={navigationMenuTriggerStyle()}>Activity</a>
+								{/snippet}
+							</NavigationMenu.Link>
+						</NavigationMenu.Item>
+						<NavigationMenu.Item>
+							<NavigationMenu.Trigger>Data</NavigationMenu.Trigger>
 							<NavigationMenu.Content>
 								<ul class="grid w-[400px] gap-2 p-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-									{#each components as component, i (i)}
+									{#each dataMenuItems as component, i (i)}
 										{@render ListItem({
 											href: component.href,
 											title: component.title,
@@ -161,14 +155,6 @@
 									{/each}
 								</ul>
 							</NavigationMenu.Content>
-						</NavigationMenu.Item>
-
-						<NavigationMenu.Item>
-							<NavigationMenu.Link>
-								{#snippet child()}
-									<a href="/docs" class={navigationMenuTriggerStyle()}>Docs</a>
-								{/snippet}
-							</NavigationMenu.Link>
 						</NavigationMenu.Item>
 						<NavigationMenu.Item>
 							<NavigationMenu.Trigger>Connections</NavigationMenu.Trigger>
@@ -183,8 +169,33 @@
 											</div>
 										</NavigationMenu.Link>
 									</li>
+									<li>
+										<NavigationMenu.Link href="/app/connect/openai" class="flex flex-row items-center gap-3">
+											<img src="/logos/openai.svg" alt="OpenAI logo" class="h-6 w-6" />
+											<div class="flex flex-col">
+												<div class="font-medium">OpenAI</div>
+												<div class="text-muted-foreground">Add your own key for Copilot.</div>
+											</div>
+										</NavigationMenu.Link>
+									</li>
 								</ul>
 							</NavigationMenu.Content>
+						</NavigationMenu.Item>
+						<!-- command palette trigger -->
+						<NavigationMenu.Item>
+							<NavigationMenu.Link>
+								{#snippet child()}
+								 <Tooltip.Provider>
+						<Tooltip.Root>
+							<Tooltip.Trigger><button type="button" onclick={toggleCommand} class={navigationMenuTriggerStyle()} style="cursor: pointer">Search</button></Tooltip.Trigger>
+							<Tooltip.Content>
+							<p>⌘ + K</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+						</Tooltip.Provider>
+									
+								{/snippet}
+							</NavigationMenu.Link>
 						</NavigationMenu.Item>
 					</NavigationMenu.List>
 				</NavigationMenu.Root>
@@ -253,3 +264,17 @@
 		</Command.Group>
 	</Command.List>
 </Command.Dialog>
+
+{#if $navigating}
+	<!-- 
+	Loading animation for next page since svelte doesn't show any indicator. 
+	- delay 100ms because most page loads are instant, and we don't want to flash 
+	- long 12s duration because we don't actually know how long it will take
+	- exponential easing so fast loads (>100ms and <1s) still see enough progress,
+	while slow networks see it moving for a full 12 seconds
+-->
+	<div
+		class="fixed left-0 right-0 top-0 z-50 h-1 w-full bg-primary"
+		in:slide={{ delay: 100, duration: 12000, axis: 'x', easing: expoOut }}
+	></div>
+{/if}

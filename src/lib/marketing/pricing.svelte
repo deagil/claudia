@@ -46,12 +46,20 @@
             </div>
 
             <ul role="list" class="space-y-3 p-8">
-              {#each ["Connect your tools", "Bring your own LLM", "Email and Chat Support"] as item}
+              <!-- FREE INCLUDED -->
+              {#each ["Connect your tools", "Bring your own LLM"] as item}
                 <li class="flex items-center gap-2">
                   <Check class="text-primary size-3" strokeWidth={3.5} />
                   {item}
                 </li>
               {/each}
+              <!-- FREE ADD ONS -->
+                {#each ["Cloud Copilot"] as item}
+                  <li class="flex items-center gap-2">
+                    <Plus class="text-primary size-3" />
+                    {item}
+                  </li>
+                {/each}
             </ul>
           </div>
           <div
@@ -71,16 +79,19 @@
               </div>
 
               <ul role="list" class="space-y-3 p-8">
-                {#each ["Connect your tools", "Fair use of Copilot", "Proactive Copilot", ""] as item}
+                <!-- TEAM INCLUDED -->
+                {#each ["Connect your tools", "Bring your own LLM", "Fair use of Cloud Copilot", "Proactive Copilot",] as item}
                   <li class="flex items-center gap-2">
                     <Check class="text-primary size-3" strokeWidth={3.5} />
                     {item}
                   </li>
                 {/each}
+                <!-- TEAM UNIQUE -->
                  <li class="flex items-center gap-2">
                     <User class="text-primary size-4"  />
                     Extra users £9 pp/mo
                   </li>
+                <!-- TEAM ADD ONS -->
                 {#each ["Extra Copilot"] as item}
                   <li class="flex items-center gap-2">
                     <Plus class="text-primary size-3" />
@@ -104,12 +115,14 @@
             </div>
 
             <ul role="list" class="space-y-3 p-8">
+              <!-- BIG TEAM INCLUDED -->
               {#each ["Everything in Team Plan"] as item}
                 <li class="flex items-center gap-2">
                   <Check class="text-primary size-4" strokeWidth={3.5} />
                   {item}
                 </li>
               {/each}
+              <!-- BIG TEAM UNIQUE -->
                 <li class="flex items-center gap-2">
                     <MessageCircleQuestion class="text-primary size-5"  />
                     Dedicated support
@@ -118,6 +131,7 @@
                     <User class="text-primary size-5"  />
                     Add users for £5 pp/mo
                 </li>
+                <!-- BIG TEAM ADD ONS -->
                 {#each ["Unfair use "] as item}
                   <li class="flex items-center gap-2">
                     <Plus class="text-primary size-4" />

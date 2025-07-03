@@ -170,7 +170,7 @@
 		placeholder="Send a message..."
 		bind:value={() => chatClient.input, setInput}
 		class={cn(
-			'bg-muted max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl pb-10 !text-base dark:border-zinc-700',
+			'bg-background max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl pb-10 !text-base dark:border-zinc-700',
 			c
 		)}
 		rows={2}

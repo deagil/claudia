@@ -55,7 +55,7 @@
 			name="email"
 			class="text-md bg-muted md:text-sm"
 			type="email"
-			placeholder="user@acme.com"
+			placeholder="jane.appleseed@example.com"
 			autocomplete="email"
 			required
 			autofocus

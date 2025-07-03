@@ -5,11 +5,15 @@
 	import { convertToUIMessages } from "$lib/utils/chat.js";
     export let data;
 </script>
-<div class="bg-purple-200"><Sidebar.Root variant="floating" side="right">
-    <Chat
-    chat={data?.chat}
-    initialMessages={convertToUIMessages(data?.messages ?? [])}
-    readonly={data?.user?.id !== data?.chat?.userId}
-    user={data?.user}
-/>
-</Sidebar.Root></div>
+<!-- debug -->
+<!-- <div class="bg-purple-200"> -->
+<div class="">
+        <Sidebar.Root variant="floating" side="right">
+            <Chat
+            chat={data?.chat}
+            initialMessages={convertToUIMessages(data?.messages ?? [])}
+            readonly={data?.user?.id !== data?.chat?.userId}
+            user={data?.user}
+        />
+    </Sidebar.Root>
+</div>

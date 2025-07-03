@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getUserSupabaseAccessToken } from '$lib/server/supabase_tokens';
+import { getUserSupabaseAccessToken } from '$lib/server/supabase/tokens';
 
 /**
  * Fetches rows from a specific table, optionally filtered and sorted.

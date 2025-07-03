@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getUserSupabaseAccessToken } from '$lib/server/supabase_tokens';
+import { getUserSupabaseAccessToken } from '$lib/server/supabase/tokens';
 
 const debug = false;
 function log(...args: any[]) {
@@ -74,7 +74,9 @@ function getTablesQuery(filterName: string | null) {
       pg_size_pretty(pg_total_relation_size(c.oid)) AS total_size_pretty,
       pg_relation_size(c.oid) AS table_bytes,
       pg_total_relation_size(c.oid) AS total_bytes,
-      c.relrowsecurity AS rls_enabled
+      c.relrowsecurity AS rls_enabled,
+      c.relhastriggers AS has_triggers,
+      c.relhasindex AS has_indexes,
     FROM
       pg_class c
       LEFT JOIN pg_namespace n ON n.oid = c.relnamespace

@@ -30,6 +30,7 @@
 
 	let bookmarks = $state(false);
 	let fullUrls = $state(true);
+	let personalise = $state(false);
 	let profileRadioValue = $state('benoit');
 
 	const sidebar = useSidebar();
@@ -39,8 +40,10 @@
 		sidebar.toggle();
 	}
 </script>
+<!-- DEBUG -->
+<!-- <header class="bg-green-200 sticky top-0 flex items-right gap-2 p-2"> -->
 
-<header class="bg-green-200 sticky top-0 flex items-right gap-2 p-2">
+<header class=" sticky top-0 flex items-right gap-2 p-2">
 	{#if !sidebar.open || (innerWidth.current ?? 768) < 768}
 		<Tooltip>
 			<TooltipTrigger>
@@ -125,15 +128,9 @@
 		<Menubar.Menu>
 			<Menubar.Trigger>Personalise</Menubar.Trigger>
 			<Menubar.Content>
-				<Menubar.RadioGroup bind:value={profileRadioValue}>
-					<Menubar.RadioItem value="andy">Andy</Menubar.RadioItem>
-					<Menubar.RadioItem value="benoit">Benoit</Menubar.RadioItem>
-					<Menubar.RadioItem value="Luis">Luis</Menubar.RadioItem>
-				</Menubar.RadioGroup>
+				<Menubar.CheckboxItem bind:checked={personalise}>Use Personalisation</Menubar.CheckboxItem>
 				<Menubar.Separator />
-				<Menubar.Item inset>Edit...</Menubar.Item>
-				<Menubar.Separator />
-				<Menubar.Item inset>Add Profile...</Menubar.Item>
+				<Menubar.Item inset>Edit Styles...</Menubar.Item>
 			</Menubar.Content>
 		</Menubar.Menu>
 	</Menubar.Root>

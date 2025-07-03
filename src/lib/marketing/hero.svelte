@@ -2,41 +2,44 @@
 	import { Button } from '$lib/components/ui/button';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import CirclePlay from '@lucide/svelte/icons/circle-play';
-    import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Header from './header.svelte';
 </script>
 
 <Header />
 <main class="overflow-hidden [--color-primary:var(--color-indigo-500)]">
 	<section class="to-muted from-background bg-linear-to-b">
-        <div class="relative pt-30"></div>
-                <!-- notification glass -->
-		<div class="relative -mb-9 hidden">
-			<a
-				href="#link"
-				class="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
-			>
-				<span class="text-foreground text-sm">Join</span>
-				<span class="dark:border-background block h-4 w-0.5 border-l bg-white dark:bg-zinc-700"
-				></span>
-				<div
-					class="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500"
-				>
-					<div
-						class="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0"
-					>
-						<span class="flex size-6">
-							<ArrowRight class="m-auto size-3" />
-						</span>
-						<span class="flex size-6">
-							<ArrowRight class="m-auto size-3" />
-						</span>
-					</div>
-				</div>
-			</a>
-		</div>
-        <!-- end notification glass -->
-		<div class="relative py-30">
+		<div class="relative pt-30"></div>
+		<!--unhide notification glass -->
+		<div class="">
+              <a
+                href="https://tally.so/r/nPg0Mb"
+                class="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
+              >
+                <span class="text-foreground text-sm"
+                  >Join Early Accesss</span
+                >
+                <span
+                  class="dark:border-background block h-4 w-0.5 border-l bg-white dark:bg-zinc-700"
+                ></span>
+                <div
+                  class="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500"
+                >
+                  <div
+                    class="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0"
+                  >
+                    <span class="flex size-6">
+                      <ArrowRight class="m-auto size-3" />
+                    </span>
+                    <span class="flex size-6">
+                      <ArrowRight class="m-auto size-3" />
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </div>
+		<!-- end notification glass -->
+		<div class="relative pb-30 pt-25">
 			<div class="relative z-10 mx-auto w-full max-w-5xl px-6">
 				<div class="md:w-1/2">
 					<div>
