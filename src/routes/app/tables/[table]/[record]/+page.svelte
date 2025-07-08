@@ -1,10 +1,11 @@
 <script lang="ts">
 	import {
-		Card,
+		// Card,
 		CardHeader,
 		CardTitle,
 		CardContent,
 	} from '$lib/components/ui/card';
+	import Card from '$lib/marketing/nugget_card.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import RecordCard from './RecordCard.svelte';
 	import AuditTimeline from './AuditTimeline.svelte';
@@ -76,6 +77,48 @@
 </script>
 
 <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+	<!-- Sidebar Section -->
+	<div class="col-span-1 space-y-4">
+		<RecordCard title="Recent Changes">
+			{#if recentChanges.length > 0}
+				{#each recentChanges as change (change.id)}
+					<AuditTimeline
+						change={{
+							...change,
+							detailedSummary: renderChangeSummary(
+								change.record_before,
+								change.record_after,
+							),
+						}}
+						expanded={expandedChanges[change.id]}
+						toggle={() => toggleExpand(change.id)}
+					/>
+				{/each}
+			{:else}
+				<p class="text-sm text-muted-foreground">No recent changes.</p>
+			{/if}
+		</RecordCard>
+
+		<Card>
+			<CardHeader>
+				<CardTitle>Previous Workflows</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<p class="text-sm text-muted-foreground">(Placeholder: no data yet)</p>
+			</CardContent>
+		</Card>
+
+		<Card>
+			<CardHeader>
+				<CardTitle>Scheduled Workflows</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<p class="text-sm text-muted-foreground">
+					(Placeholder: not yet implemented)
+				</p>
+			</CardContent>
+		</Card>
+	</div>
 	<!-- Main Section -->
 	<div class="col-span-2 space-y-4">
 		<RecordCard title="{tableConfig?.label || table} Record">
@@ -126,49 +169,6 @@
 			<CardContent>
 				<p class="text-sm text-muted-foreground">
 					Placeholder for foreign-key related records.
-				</p>
-			</CardContent>
-		</Card>
-	</div>
-
-	<!-- Sidebar Section -->
-	<div class="col-span-1 space-y-4">
-		<RecordCard title="Recent Changes">
-			{#if recentChanges.length > 0}
-				{#each recentChanges as change (change.id)}
-					<AuditTimeline
-						change={{
-							...change,
-							detailedSummary: renderChangeSummary(
-								change.record_before,
-								change.record_after,
-							),
-						}}
-						expanded={expandedChanges[change.id]}
-						toggle={() => toggleExpand(change.id)}
-					/>
-				{/each}
-			{:else}
-				<p class="text-sm text-muted-foreground">No recent changes.</p>
-			{/if}
-		</RecordCard>
-
-		<Card>
-			<CardHeader>
-				<CardTitle>Previous Workflows</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p class="text-sm text-muted-foreground">(Placeholder: no data yet)</p>
-			</CardContent>
-		</Card>
-
-		<Card>
-			<CardHeader>
-				<CardTitle>Scheduled Workflows</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<p class="text-sm text-muted-foreground">
-					(Placeholder: not yet implemented)
 				</p>
 			</CardContent>
 		</Card>

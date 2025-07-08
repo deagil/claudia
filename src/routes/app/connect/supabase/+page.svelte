@@ -74,7 +74,7 @@
                         Connected as {supabaseOrganization.name} ({supabaseOrganization.id})
                     </AlertTitle>
                 </Alert>
-                <Button
+                <!-- <Button
                     onclick={() => {
                         window.location.href = '/api/supabase/check';
                     }}
@@ -83,7 +83,7 @@
                     type="button"
                 >
                     Check connection
-                </Button>
+                </Button> -->
             {:else if loading}
                 <Alert>
                     <CheckCircle2Icon />

@@ -47,7 +47,7 @@
 
 		return chats.reduce(
 			(groups, chat) => {
-				const chatDate = new Date(chat.createdAt);
+				const chatDate = new Date(chat.created_at);
 
 				if (isToday(chatDate)) {
 					groups.today.push(chat);

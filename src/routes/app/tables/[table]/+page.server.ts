@@ -1,3 +1,4 @@
+// File: src/routes/app/tables/[table]/page.server.ts
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -8,7 +9,7 @@ export const load: PageServerLoad = async ({
 }) => {
     const { user } = await safeGetSession();
     if (!user) {
-        return redirect(303, '/login');
+        return redirect(303, '/signin');
     }
 
     // Use params.table to fetch the correct table

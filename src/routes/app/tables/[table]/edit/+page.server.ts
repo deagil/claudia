@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ fetch, params, locals, cookies }) =
     const { table } = params;
 
     const { user } = await locals.safeGetSession();
-    if (!user) throw redirect(303, '/login');
+    if (!user) throw redirect(303, '/signin');
 
     const projectId = cookies.get('supabase_project_id');
     if (!projectId) throw redirect(303, '/');

@@ -23,7 +23,7 @@
 >
 	<div
 		class={cn(
-			'flex w-full gap-4 group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl',
+			'flex flex-col items-start w-full gap-4 group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl',
 			{
 				'w-full': mode === 'edit',
 				'group-data-[role=user]/message:w-fit': mode !== 'edit'

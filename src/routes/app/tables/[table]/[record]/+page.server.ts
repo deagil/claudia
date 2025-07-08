@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({
 }) => {
     const { user } = await safeGetSession();
     if (!user) {
-        return redirect(303, '/login');
+        return redirect(303, '/sigin');
     }
 
     console.log('Fetching record data for:', params.table, params.record);

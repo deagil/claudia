@@ -9,7 +9,7 @@ export function convertToUIMessages(messages: Array<DBMessage>): Array<UIMessage
 		role: message.role as UIMessage['role'],
 		// Note: content will soon be deprecated in @ai-sdk/react
 		content: '',
-		createdAt: message.createdAt,
+		created_at: message.created_at,
 		experimental_attachments: (message.attachments as Array<Attachment>) ?? []
 	}));
 }
@@ -23,7 +23,7 @@ export function getDocumentTimestampByIndex(documents: Array<Document>, index: n
 	if (!documents) return new Date();
 	if (index > documents.length) return new Date();
 
-	return documents[index].createdAt;
+	return documents[index].created_at;
 }
 
 type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage;

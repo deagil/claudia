@@ -34,6 +34,7 @@
 		>
 			<Button
 				variant="ghost"
+				style="cursor: pointer"
 				onclick={async () => {
 					if (user) {
 						replaceState(`/chat/${chatClient.id}`, {});
@@ -43,7 +44,7 @@
 						content: suggestedAction.action
 					});
 				}}
-				class="h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col whitespace-normal break-words"
+				class="bg-secondary hover:bg-background h-auto w-full flex-1 items-start justify-start gap-1 rounded-xl border px-4 py-3.5 text-left text-sm sm:flex-col whitespace-normal break-words"
 			>
 			<span>
 				<span class="font-medium">{suggestedAction.title}</span>

@@ -20,9 +20,9 @@ export const user = pgTable('User', {
 export type AuthUser = InferSelectModel<typeof user>;
 export type User = Omit<AuthUser, 'password'>;
 
-export const session = pgTable('Session', {
+export const sessions = pgTable('sessions', {
 	id: text('id').primaryKey().notNull(),
-	userId: uuid('userId')
+	user_id: uuid('user_id')
 		.notNull()
 		.references(() => user.id),
 	expiresAt: timestamp('expires_at', {
@@ -31,13 +31,13 @@ export const session = pgTable('Session', {
 	}).notNull()
 });
 
-export type Session = InferSelectModel<typeof session>;
+export type Session = InferSelectModel<typeof sessions>;
 
-export const chat = pgTable('Chat', {
+export const chats = pgTable('chats', {
 	id: uuid('id').primaryKey().notNull().defaultRandom().primaryKey(),
-	createdAt: timestamp('createdAt').notNull(),
+	created_at: timestamp('created_at').notNull(),
 	title: text('title').notNull(),
-	userId: uuid('userId')
+	user_id: uuid('user_id')
 		.notNull()
 		.references(() => user.id),
 	visibility: varchar('visibility', { enum: ['public', 'private'] })
@@ -45,66 +45,66 @@ export const chat = pgTable('Chat', {
 		.default('private')
 });
 
-export type Chat = InferSelectModel<typeof chat>;
+export type Chat = InferSelectModel<typeof chats>;
 
-export const message = pgTable('Message', {
+export const messages = pgTable('messages', {
 	id: uuid('id').primaryKey().notNull().defaultRandom(),
-	chatId: uuid('chatId')
+	chat_id: uuid('chat_id')
 		.notNull()
-		.references(() => chat.id),
+		.references(() => chats.id),
 	role: varchar('role').notNull(),
 	parts: json('parts').notNull(),
 	attachments: json('attachments').notNull(),
-	createdAt: timestamp('createdAt').notNull()
+	created_at: timestamp('created_at').notNull()
 });
 
-export type Message = InferSelectModel<typeof message>;
+export type Message = InferSelectModel<typeof messages>;
 
-export const vote = pgTable(
+export const votes = pgTable(
 	'Vote',
 	{
-		chatId: uuid('chatId')
+		chat_id: uuid('chat_id')
 			.notNull()
-			.references(() => chat.id),
+			.references(() => chats.id),
 		messageId: uuid('messageId')
 			.notNull()
-			.references(() => message.id),
+			.references(() => messages.id),
 		isUpvoted: boolean('isUpvoted').notNull()
 	},
 	(table) => [
 		{
-			pk: primaryKey({ columns: [table.chatId, table.messageId] })
+			pk: primaryKey({ columns: [table.chat_id, table.messageId] })
 		}
 	]
 );
 
-export type Vote = InferSelectModel<typeof vote>;
+export type Vote = InferSelectModel<typeof votes>;
 
 export const document = pgTable(
 	'Document',
 	{
 		id: uuid('id').notNull().defaultRandom(),
-		createdAt: timestamp('createdAt').notNull(),
+		created_at: timestamp('created_at').notNull(),
 		title: text('title').notNull(),
 		content: text('content'),
 		kind: varchar('text', { enum: ['text', 'code', 'image', 'sheet'] })
 			.notNull()
 			.default('text'),
-		userId: uuid('userId')
+		user_id: uuid('user_id')
 			.notNull()
 			.references(() => user.id)
 	},
 	(table) => [
 		{
-			pk: primaryKey({ columns: [table.id, table.createdAt] })
+			pk: primaryKey({ columns: [table.id, table.created_at] })
 		}
 	]
 );
 
 export type Document = InferSelectModel<typeof document>;
 
-export const suggestion = pgTable(
-	'Suggestion',
+export const suggestions = pgTable(
+	'suggestions',
 	{
 		id: uuid('id').notNull().defaultRandom(),
 		documentId: uuid('documentId').notNull(),
@@ -113,20 +113,20 @@ export const suggestion = pgTable(
 		suggestedText: text('suggestedText').notNull(),
 		description: text('description'),
 		isResolved: boolean('isResolved').notNull().default(false),
-		userId: uuid('userId')
+		user_id: uuid('user_id')
 			.notNull()
 			.references(() => user.id),
-		createdAt: timestamp('createdAt').notNull()
+		created_at: timestamp('created_at').notNull()
 	},
 	(table) => [
 		{
 			pk: primaryKey({ columns: [table.id] }),
 			documentRef: foreignKey({
 				columns: [table.documentId, table.documentCreatedAt],
-				foreignColumns: [document.id, document.createdAt]
+				foreignColumns: [document.id, document.created_at]
 			})
 		}
 	]
 );
 
-export type Suggestion = InferSelectModel<typeof suggestion>;
+export type Suggestion = InferSelectModel<typeof suggestions>;

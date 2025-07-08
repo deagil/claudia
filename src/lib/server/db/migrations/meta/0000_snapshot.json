@@ -15,8 +15,8 @@
 					"notNull": true,
 					"default": "gen_random_uuid()"
 				},
-				"createdAt": {
-					"name": "createdAt",
+				"created_at": {
+					"name": "created_at",
 					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true
@@ -70,8 +70,8 @@
 					"notNull": true,
 					"default": "gen_random_uuid()"
 				},
-				"createdAt": {
-					"name": "createdAt",
+				"created_at": {
+					"name": "created_at",
 					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true
@@ -155,8 +155,8 @@
 					"primaryKey": false,
 					"notNull": true
 				},
-				"createdAt": {
-					"name": "createdAt",
+				"created_at": {
+					"name": "created_at",
 					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true
@@ -275,8 +275,8 @@
 					"primaryKey": false,
 					"notNull": true
 				},
-				"createdAt": {
-					"name": "createdAt",
+				"created_at": {
+					"name": "created_at",
 					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": true

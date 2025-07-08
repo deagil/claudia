@@ -17,14 +17,10 @@
 	import { expoOut } from 'svelte/easing';
 	import { slide } from 'svelte/transition';
 
-
 	let { data, children } = $props();
-
-	let sidebarWidth = 0;
 	let commandOpen = $state(false);
-
-	const sidebar = useSidebar();
-
+	const sessions = data.sessionData;
+	
 	const chatHistory = new ChatHistory(data.chats);
 	chatHistory.setContext();
 	data.selectedChatModel.setContext();
@@ -33,15 +29,11 @@
 		commandOpen = !commandOpen;
 	}
 
+	//keyboard shortcuts
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			commandOpen = !commandOpen;
-		}
-
-		if (e.key === 'h' && (e.metaKey || e.ctrlKey)) {
-			e.preventDefault();
-			sidebar.setOpen(!sidebar.open);
 		}
 	}
 
@@ -49,9 +41,8 @@
 		{
 			title: 'Tables',
 			href: '/app/tables',
-			description:
-				'Document your tables, view record history.'
-		},
+			description: 'Document your tables, view record history.'
+		}
 	];
 
 	type ListItemProps = HTMLAttributes<HTMLAnchorElement> & {
@@ -86,7 +77,7 @@
 {/snippet}
 
 <Sidebar.Provider style="--sidebar-width: 25rem;" open={!data.sidebarCollapsed}>
-	<Sidebar.Inset>
+	<Sidebar.Inset class="min-w-0 flex-1">
 		<div class="flex w-full items-center px-2 py-2">
 			<!--uncomment below div to make the navbar centered -->
 			<!-- <div class="flex-1"></div> -->
@@ -104,8 +95,8 @@
 										>
 											{#snippet child({ props })}
 												<a {...props} href="/">
-													<div class="flex flex-row items-center gap-3">											
-														<MoveLeft class="mb-2 size-4" />
+													<div class="flex flex-row items-center gap-3">
+														<!-- <MoveLeft class="mb-2 size-4" /> -->
 														<div class="mt-4 mb-2 text-lg font-medium">Exit App</div>
 													</div>
 													<p class="text-muted-foreground text-sm leading-tight">
@@ -116,19 +107,19 @@
 										</NavigationMenu.Link>
 									</li>
 									{@render ListItem({
-										href: '/docs',
-										title: 'Introduction',
-										content: 'Re-usable components built using Bits UI and Tailwind CSS.'
+										href: `/app/profile/${data.profileData?.firstname}`,
+										title: 'My Preferences',
+										content: `Signed in as ${data.profileData.firstname} ${data.profileData.lastname}`
 									})}
 									{@render ListItem({
-										href: '/docs/installation',
-										title: 'Installation',
-										content: 'How to install dependencies and structure your app.'
+										href: '/app/organisation',
+										title: 'Organisation Settings',
+										content: `Manage settings for ${data.selectedOrg.name}`
 									})}
 									{@render ListItem({
-										href: '/docs/primitives/typography',
-										title: 'Typography',
-										content: 'Styles for headings, paragraphs, lists...etc'
+										href: '/signout',
+										title: 'Sign Out',
+										content: 'Log out of your account'
 									})}
 								</ul>
 							</NavigationMenu.Content>
@@ -138,7 +129,7 @@
 						<NavigationMenu.Item>
 							<NavigationMenu.Link>
 								{#snippet child()}
-									<a href="/docs" class={navigationMenuTriggerStyle()}>Activity</a>
+									<a href="/activity" class={navigationMenuTriggerStyle()}>Activity</a>
 								{/snippet}
 							</NavigationMenu.Link>
 						</NavigationMenu.Item>
@@ -161,7 +152,10 @@
 							<NavigationMenu.Content>
 								<ul class="grid w-[300px] gap-4 p-2">
 									<li>
-										<NavigationMenu.Link href="/app/connect/supabase" class="flex flex-row items-center gap-3">
+										<NavigationMenu.Link
+											href="/app/connect/supabase"
+											class="flex flex-row items-center gap-3"
+										>
 											<img src="/logos/supabase.svg" alt="Supabase logo" class="h-6 w-6" />
 											<div class="flex flex-col">
 												<div class="font-medium">Supabase</div>
@@ -170,7 +164,10 @@
 										</NavigationMenu.Link>
 									</li>
 									<li>
-										<NavigationMenu.Link href="/app/connect/openai" class="flex flex-row items-center gap-3">
+										<NavigationMenu.Link
+											href="/app/connect/openai"
+											class="flex flex-row items-center gap-3"
+										>
 											<img src="/logos/openai.svg" alt="OpenAI logo" class="h-6 w-6" />
 											<div class="flex flex-col">
 												<div class="font-medium">OpenAI</div>
@@ -184,17 +181,23 @@
 						<!-- command palette trigger -->
 						<NavigationMenu.Item>
 							<NavigationMenu.Link>
-								{#snippet child()}
+								<button
+									type="button"
+									onclick={toggleCommand}
+									class={navigationMenuTriggerStyle()}
+									style="cursor: pointer">Search</button
+								>
+								<!-- {#snippet child()}
 								 <Tooltip.Provider>
 						<Tooltip.Root>
-							<Tooltip.Trigger><button type="button" onclick={toggleCommand} class={navigationMenuTriggerStyle()} style="cursor: pointer">Search</button></Tooltip.Trigger>
+							<Tooltip.Trigge</Tooltip.Trigger>
 							<Tooltip.Content>
 							<p>⌘ + K</p>
 							</Tooltip.Content>
 						</Tooltip.Root>
 						</Tooltip.Provider>
 									
-								{/snippet}
+								{/snippet} -->
 							</NavigationMenu.Link>
 						</NavigationMenu.Item>
 					</NavigationMenu.List>
@@ -208,8 +211,8 @@
 			</div>
 		</div>
 		<div>
-			<header class="flex h-10 shrink-0 items-center gap-2 px-4">
-				<Breadcrumb.Root>
+			<header class="flex h-2 shrink-0 items-center gap-2 px-4">
+				<!-- <Breadcrumb.Root>
 					<Breadcrumb.List>
 						<Breadcrumb.Item class="hidden md:block">
 							<Breadcrumb.Link href="#">Building Your Application</Breadcrumb.Link>
@@ -219,10 +222,16 @@
 							<Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
-				</Breadcrumb.Root>
+				</Breadcrumb.Root> -->
 			</header>
 		</div>
-		{@render children?.()}
+		{#if data.sidebarCollapsed}
+		<div class="px-6 py-2">{@render children?.()}</div>
+		{:else}
+		<div class="px-2 py-2">{@render children?.()}</div>
+		{/if}
+		
+		
 	</Sidebar.Inset>
 	<AppSidebar {data} />
 </Sidebar.Provider>
@@ -274,7 +283,7 @@
 	while slow networks see it moving for a full 12 seconds
 -->
 	<div
-		class="fixed left-0 right-0 top-0 z-50 h-1 w-full bg-primary"
+		class="bg-primary fixed top-0 right-0 left-0 z-50 h-1 w-full"
 		in:slide={{ delay: 100, duration: 12000, axis: 'x', easing: expoOut }}
 	></div>
 {/if}

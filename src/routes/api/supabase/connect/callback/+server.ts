@@ -1,5 +1,5 @@
 // src/routes/api/supabase/connect/callback/+server.ts
-import { OAUTH_REDIRECT_URI, OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET } from '$env/static/private';
+import { SUPABASE_OAUTH_REDIRECT_URI, SUPABASE_OAUTH_CLIENT_ID, SUPABASE_OAUTH_CLIENT_SECRET } from '$env/static/private';
 import { redirect, error } from '@sveltejs/kit';
 import { btoa } from 'buffer';
 
@@ -32,11 +32,11 @@ export async function GET(event) {
   const params = new URLSearchParams();
   params.append('grant_type', 'authorization_code');
   params.append('code', code);
-  params.append('redirect_uri', OAUTH_REDIRECT_URI);
+  params.append('redirect_uri', SUPABASE_OAUTH_REDIRECT_URI);
   params.append('code_verifier', codeVerifier);
 
   // Use basic auth to include your client credentials
-  const basicAuth = btoa(`${OAUTH_CLIENT_ID}:${OAUTH_CLIENT_SECRET}`);
+  const basicAuth = btoa(`${SUPABASE_OAUTH_CLIENT_ID}:${SUPABASE_OAUTH_CLIENT_SECRET}`);
 
   // Exchange the authorization code for tokens
   const res = await fetch(TOKEN_URL, {

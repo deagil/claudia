@@ -81,7 +81,7 @@
 
 	function handleRowClick(row: { name: any }) {
 		// navigate to the table detail page
-		goto(`/data/tables/${table}/${row.id}`);
+		goto(`/app/tables/${table}/${row.id}`);
 	}
 </script>
 

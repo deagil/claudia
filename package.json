@@ -83,6 +83,7 @@
 		"@supabase/supabase-js": "^2.50.2",
 		"@tanstack/table-core": "^8.21.3",
 		"formsnap": "^2.0.1",
-		"stripe": "^18.2.1"
+		"stripe": "^18.2.1",
+		"supabase-management-js": "^1.0.0"
 	}
 }

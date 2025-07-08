@@ -20,12 +20,14 @@
 		user,
 		chat,
 		readonly,
-		initialMessages
+		initialMessages,
+		onSelectChat
 	}: {
 		user: User | undefined;
 		chat: DbChat | undefined;
 		initialMessages: UIMessage[];
 		readonly: boolean;
+		onSelectChat?: (chatId: string) => void;
 	} = $props();
 
 	const chatHistory = ChatHistory.fromContext();
@@ -71,7 +73,7 @@
 
 <div class=" m-1 flex flex-1 min-w-0 max-w-[{SIDEBAR_WIDTH}] flex-col overflow-y-auto">
 	<!-- debug green -->
-	<div class=""><ChatHeader {user} {chat} {readonly} /></div>
+	<div class=""><ChatHeader {user} {chat} {readonly} {onSelectChat}/></div>
 	<Messages
 		{readonly}
 		loading={chatClient.status === 'streaming' || chatClient.status === 'submitted'}

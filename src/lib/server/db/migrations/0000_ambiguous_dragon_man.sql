@@ -1,6 +1,6 @@
 CREATE TABLE "Chat" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"createdAt" timestamp NOT NULL,
+	"created_at" timestamp NOT NULL,
 	"title" text NOT NULL,
 	"userId" uuid NOT NULL,
 	"visibility" varchar DEFAULT 'private' NOT NULL
@@ -8,7 +8,7 @@ CREATE TABLE "Chat" (
 --> statement-breakpoint
 CREATE TABLE "Document" (
 	"id" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"createdAt" timestamp NOT NULL,
+	"created_at" timestamp NOT NULL,
 	"title" text NOT NULL,
 	"content" text,
 	"text" varchar DEFAULT 'text' NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "Message" (
 	"role" varchar NOT NULL,
 	"parts" json NOT NULL,
 	"attachments" json NOT NULL,
-	"createdAt" timestamp NOT NULL
+	"created_at" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "Session" (
@@ -39,7 +39,7 @@ CREATE TABLE "Suggestion" (
 	"description" text,
 	"isResolved" boolean DEFAULT false NOT NULL,
 	"userId" uuid NOT NULL,
-	"createdAt" timestamp NOT NULL
+	"created_at" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "User" (

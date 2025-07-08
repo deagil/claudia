@@ -16,16 +16,18 @@
 	import * as Menubar from '$lib/components/ui/menubar/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import SidebarTrigger from './ui/sidebar/sidebar-trigger.svelte';
-
+	import { ChatHistory } from '$lib/hooks/chat-history.svelte';
 
 	let {
 		user,
 		chat,
-		readonly
+		readonly,
+		onSelectChat
 	}: {
 		user: User | undefined;
 		chat: Chat | undefined;
 		readonly: boolean;
+		onSelectChat?: (chatId: string) => void;
 	} = $props();
 
 	let bookmarks = $state(false);
@@ -39,6 +41,43 @@
 		// Your logic here
 		sidebar.toggle();
 	}
+
+	// Use safe context access
+	let chatHistory: ChatHistory | null = $state(null);
+	if (typeof ChatHistory?.fromContext === 'function') {
+		try {
+			chatHistory = ChatHistory.fromContext();
+		} catch (e) {
+			chatHistory = null;
+		}
+	}
+
+	console.log('[ChatHeader] chatHistory:', chatHistory);
+
+	const currentChat = $derived.by(
+		() => (chat?.id ? chatHistory?.getChatDetails(chat.id) : undefined) ?? chat,
+	);
+		
+	const chatTitle = $derived.by(() => currentChat?.title ?? 'Chat');
+
+	function handleSelectChat(chatId: string) {
+		console.log('[ChatHeader] handleSelectChat called with chatId:', chatId);
+		if (chatId !== chat?.id && typeof onSelectChat === 'function') {
+			onSelectChat(chatId);
+		}
+	}
+
+	$effect(() => {
+		console.log('[ChatHeader] chatHistory:', chatHistory);
+		console.log('[ChatHeader] chat:', chat);
+		console.log('[ChatHeader] currentChat:', currentChat);
+		console.log('[ChatHeader] chatTitle:', chatTitle);
+		if (chatHistory) {
+			console.log('[ChatHeader] chatHistory.chats:', chatHistory.chats);
+		}
+	});
+
+
 </script>
 <!-- DEBUG -->
 <!-- <header class="bg-green-200 sticky top-0 flex items-right gap-2 p-2"> -->
@@ -90,10 +129,17 @@
 				<Menubar.Separator />
 				<Menubar.Sub>
 					<Menubar.SubTrigger>History</Menubar.SubTrigger>
-					<Menubar.SubContent>
-						<Menubar.Item>Email link</Menubar.Item>
-						<Menubar.Item>Messages</Menubar.Item>
-						<Menubar.Item>Notes</Menubar.Item>
+					<Menubar.SubContent>				<!-- previous chats here -->
+					 {#if chatHistory && chatHistory.chats.length > 0}
+						{#each chatHistory.chats as chat}
+							<Menubar.Item onclick={() => handleSelectChat(chat.id)}>
+								{chat.title}
+							</Menubar.Item>
+						{/each}
+					 {/if}
+						{#if chatHistory && chatHistory.chats.length === 0}
+							<Menubar.Item disabled>No chats found</Menubar.Item>
+						{/if}
 					</Menubar.SubContent>
 				</Menubar.Sub>
 				<Menubar.Separator />
@@ -112,11 +158,6 @@
 		<Menubar.Menu>
 			<Menubar.Trigger>Tools</Menubar.Trigger>
 			<Menubar.Content>
-				<Menubar.CheckboxItem bind:checked={bookmarks}
-					>Always Show Bookmarks Bar</Menubar.CheckboxItem
-				>
-				<Menubar.CheckboxItem bind:checked={fullUrls}>Always Show Full URLs</Menubar.CheckboxItem>
-				<Menubar.Separator />
 				<Menubar.Item>
 					Summarise Page <Menubar.Shortcut>⇪S</Menubar.Shortcut>
 				</Menubar.Item>
@@ -134,5 +175,8 @@
 			</Menubar.Content>
 		</Menubar.Menu>
 	</Menubar.Root>
+	{#if chatTitle}
+		<h1 class="text-lg font-bold">{chatTitle}</h1>
+	{/if}
 	<SidebarTrigger/>
 </header>

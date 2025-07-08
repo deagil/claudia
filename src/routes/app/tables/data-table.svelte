@@ -74,7 +74,8 @@
 	});
 </script>
 
-<div>
+<!-- Main container with proper width constraints -->
+<div class="w-full min-w-0">
 	<div class="flex flex-row">
 		<!-- Filtering UI: only show for specified columns -->
 		{#each filterColumns as col}
@@ -104,14 +105,14 @@
 		</DropdownMenu.Root>
 	</div>
 	
-	<!-- Table -->
-	<div class="mt-2 rounded-md border border-slate-200 shadow-sm dark:border-slate-700">
-		<Table.Root>
+	<!-- Table container with horizontal scroll -->
+	<div class="z-0 mt-2 w-full overflow-x-auto rounded-md border border-slate-200 shadow-sm dark:border-slate-700">
+		<Table.Root class="w-full">
 			<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
 					<Table.Row>
 						{#each headerGroup.headers as header (header.id)}
-							<Table.Head>
+							<Table.Head class="whitespace-nowrap">
 								{#if !header.isPlaceholder}
 									<FlexRender
 										content={header.column.columnDef.header}
@@ -131,12 +132,12 @@
 						onclick={() => (onRowClick ? onRowClick(row.original) : null)}
 					>
 						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell>
+							<Table.Cell class="whitespace-nowrap">
 								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 							</Table.Cell>
 						{/each}
 						{#if rowActions}
-							<Table.Cell>
+							<Table.Cell class="whitespace-nowrap">
 								{@html rowActions(row.original)}
 							</Table.Cell>
 						{/if}

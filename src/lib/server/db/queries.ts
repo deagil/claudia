@@ -2,20 +2,20 @@ import { genSaltSync, hashSync } from 'bcrypt-ts';
 import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { POSTGRES_URL } from '$env/static/private';
+import { PRIVATE_POSTGRES_URL } from '$env/static/private';
 import { ResultAsync, fromPromise, ok, safeTry } from 'neverthrow';
 import {
 	user,
-	chat,
+	chats,
 	type User,
 	document,
 	type Suggestion,
-	suggestion,
+	suggestions,
 	type Message,
-	message,
-	vote,
+	messages,
+	votes,
 	type Session,
-	session,
+	sessions,
 	type AuthUser,
 	type Chat,
 	type Vote
@@ -30,7 +30,7 @@ import { unwrapSingleQueryResult } from './utils';
 // https://authjs.dev/reference/adapter/drizzle
 
 // biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(POSTGRES_URL);
+const client = postgres(PRIVATE_POSTGRES_URL);
 const db = drizzle(client);
 
 export function getAuthUser(email: string): ResultAsync<AuthUser, DbError> {
@@ -75,7 +75,7 @@ export function createAuthUser(email: string, password: string): ResultAsync<Aut
 export function createSession(value: Session): ResultAsync<Session, DbError> {
 	return safeTry(async function* () {
 		const sessionResult = yield* fromPromise(
-			db.insert(session).values(value).returning(),
+			db.insert(sessions).values(value).returning(),
 			(e) => new DbInternalError({ cause: e })
 		);
 		return unwrapSingleQueryResult(sessionResult, value.id, 'Session');
@@ -88,20 +88,22 @@ export function getFullSession(
 	return safeTry(async function* () {
 		const sessionResult = yield* fromPromise(
 			db
-				.select({ user: { id: user.id, email: user.email }, session })
-				.from(session)
-				.innerJoin(user, eq(session.userId, user.id))
-				.where(eq(session.id, sessionId)),
+				.select({ user: { id: user.id, email: user.email }, session: sessions })
+				.from(sessions)
+				.innerJoin(user, eq(sessions.user_id, user.id))
+				.where(eq(sessions.id, sessionId)),
 			(e) => new DbInternalError({ cause: e })
 		);
-		return unwrapSingleQueryResult(sessionResult, sessionId, 'Session');
+		const result = unwrapSingleQueryResult(sessionResult, sessionId, 'Session');
+		// Map to required shape: { session, user }
+		return result.map(({ session, user }) => ({ session, user }));
 	});
 }
 
 export function deleteSession(sessionId: string): ResultAsync<undefined, DbError> {
 	return safeTry(async function* () {
 		yield* fromPromise(
-			db.delete(session).where(eq(session.id, sessionId)),
+			db.delete(sessions).where(eq(sessions.id, sessionId)),
 			(e) => new DbInternalError({ cause: e })
 		);
 
@@ -113,9 +115,9 @@ export function extendSession(sessionId: string): ResultAsync<Session, DbError> 
 	return safeTry(async function* () {
 		const sessionResult = yield* fromPromise(
 			db
-				.update(session)
+				.update(sessions)
 				.set({ expiresAt: new Date(Date.now() + ms('30d')) })
-				.where(eq(session.id, sessionId))
+				.where(eq(sessions.id, sessionId))
 				.returning(),
 			(e) => new DbInternalError({ cause: e })
 		);
@@ -127,7 +129,7 @@ export function extendSession(sessionId: string): ResultAsync<Session, DbError> 
 export function deleteSessionsForUser(userId: string): ResultAsync<undefined, DbError> {
 	return safeTry(async function* () {
 		yield* fromPromise(
-			db.delete(session).where(eq(session.userId, userId)),
+			db.delete(sessions).where(eq(sessions.user_id, userId)),
 			(e) => new DbInternalError({ cause: e })
 		);
 
@@ -137,37 +139,37 @@ export function deleteSessionsForUser(userId: string): ResultAsync<undefined, Db
 
 export function saveChat({
 	id,
-	userId,
+	user_id,
 	title
 }: {
 	id: string;
-	userId: string;
+	user_id: string;
 	title: string;
 }): ResultAsync<Chat, DbError> {
 	return safeTry(async function* () {
 		const insertResult = yield* fromPromise(
 			db
-				.insert(chat)
+				.insert(chats)
 				.values({
 					id,
-					createdAt: new Date(),
-					userId,
+					created_at: new Date(),
+					user_id,
 					title
 				})
 				.returning(),
 			(e) => new DbInternalError({ cause: e })
 		);
 
-		return unwrapSingleQueryResult(insertResult, id, 'Chat');
+		return unwrapSingleQueryResult(insertResult, id, 'chats');
 	});
 }
 
 export function deleteChatById({ id }: { id: string }): ResultAsync<undefined, DbError> {
 	return safeTry(async function* () {
 		const actions = [
-			() => db.delete(vote).where(eq(vote.chatId, id)),
-			() => db.delete(message).where(eq(message.chatId, id)),
-			() => db.delete(chat).where(eq(chat.id, id))
+			() => db.delete(votes).where(eq(votes.chatId, id)),
+			() => db.delete(messages).where(eq(messages.chatId, id)),
+			() => db.delete(chats).where(eq(chats.id, id))
 		];
 
 		for (const action of actions) {
@@ -180,7 +182,7 @@ export function deleteChatById({ id }: { id: string }): ResultAsync<undefined, D
 
 export function getChatsByUserId({ id }: { id: string }): ResultAsync<Chat[], DbError> {
 	return fromPromise(
-		db.select().from(chat).where(eq(chat.userId, id)).orderBy(desc(chat.createdAt)),
+		db.select().from(chats).where(eq(chats.user_id, id)).orderBy(desc(chats.created_at)),
 		(e) => new DbInternalError({ cause: e })
 	);
 }
@@ -188,22 +190,22 @@ export function getChatsByUserId({ id }: { id: string }): ResultAsync<Chat[], Db
 export function getChatById({ id }: { id: string }): ResultAsync<Chat, DbError> {
 	return safeTry(async function* () {
 		const chatResult = yield* fromPromise(
-			db.select().from(chat).where(eq(chat.id, id)),
+			db.select().from(chats).where(eq(chats.id, id)),
 			(e) => new DbInternalError({ cause: e })
 		);
 
-		return unwrapSingleQueryResult(chatResult, id, 'Chat');
+		return unwrapSingleQueryResult(chatResult, id, 'chats');
 	});
 }
 
 export function saveMessages({
-	messages
+	messages: messageList
 }: {
 	messages: Array<Message>;
 }): ResultAsync<Message[], DbError> {
 	return safeTry(async function* () {
 		const insertResult = yield* fromPromise(
-			db.insert(message).values(messages).returning(),
+			db.insert(messages).values(messageList).returning(),
 			(e) => new DbInternalError({ cause: e })
 		);
 
@@ -213,12 +215,12 @@ export function saveMessages({
 
 export function getMessagesByChatId({ id }: { id: string }): ResultAsync<Message[], DbError> {
 	return safeTry(async function* () {
-		const messages = yield* fromPromise(
-			db.select().from(message).where(eq(message.chatId, id)).orderBy(asc(message.createdAt)),
+		const result = yield* fromPromise(
+			db.select().from(messages).where(eq(messages.chatId, id)).orderBy(asc(messages.created_at)),
 			(e) => new DbInternalError({ cause: e })
 		);
 
-		return ok(messages);
+		return ok(result as Message[]);
 	});
 }
 
@@ -234,14 +236,14 @@ export function voteMessage({
 	return safeTry(async function* () {
 		yield* fromPromise(
 			db
-				.insert(vote)
+				.insert(votes)
 				.values({
 					chatId,
 					messageId,
 					isUpvoted: type === 'up'
 				})
 				.onConflictDoUpdate({
-					target: [vote.messageId, vote.chatId],
+					target: [votes.messageId, votes.chatId],
 					set: { isUpvoted: type === 'up' }
 				}),
 			(e) => new DbInternalError({ cause: e })
@@ -252,7 +254,7 @@ export function voteMessage({
 
 export function getVotesByChatId({ id }: { id: string }): ResultAsync<Vote[], DbError> {
 	return fromPromise(
-		db.select().from(vote).where(eq(vote.chatId, id)),
+		db.select().from(votes).where(eq(votes.chatId, id)),
 		(e) => new DbInternalError({ cause: e })
 	);
 }
@@ -262,13 +264,13 @@ export async function saveDocument({
 	title,
 	kind,
 	content,
-	userId
+	user_id
 }: {
 	id: string;
 	title: string;
 	kind: never;
 	content: string;
-	userId: string;
+	user_id: string;
 }) {
 	try {
 		return await db.insert(document).values({
@@ -276,8 +278,8 @@ export async function saveDocument({
 			title,
 			kind,
 			content,
-			userId,
-			createdAt: new Date()
+			user_id,
+			created_at: new Date()
 		});
 	} catch (error) {
 		console.error('Failed to save document in database');
@@ -291,7 +293,7 @@ export async function getDocumentsById({ id }: { id: string }) {
 			.select()
 			.from(document)
 			.where(eq(document.id, id))
-			.orderBy(asc(document.createdAt));
+			.orderBy(asc(document.created_at));
 
 		return documents;
 	} catch (error) {
@@ -306,7 +308,7 @@ export async function getDocumentById({ id }: { id: string }) {
 			.select()
 			.from(document)
 			.where(eq(document.id, id))
-			.orderBy(desc(document.createdAt));
+			.orderBy(desc(document.created_at));
 
 		return selectedDocument;
 	} catch (error) {
@@ -324,12 +326,12 @@ export async function deleteDocumentsByIdAfterTimestamp({
 }) {
 	try {
 		await db
-			.delete(suggestion)
-			.where(and(eq(suggestion.documentId, id), gt(suggestion.documentCreatedAt, timestamp)));
+			.delete(suggestions)
+			.where(and(eq(suggestions.documentId, id), gt(suggestions.documentCreatedAt, timestamp)));
 
 		return await db
 			.delete(document)
-			.where(and(eq(document.id, id), gt(document.createdAt, timestamp)));
+			.where(and(eq(document.id, id), gt(document.created_at, timestamp)));
 	} catch (error) {
 		console.error('Failed to delete documents by id after timestamp from database');
 		throw error;
@@ -337,12 +339,12 @@ export async function deleteDocumentsByIdAfterTimestamp({
 }
 
 export function saveSuggestions({
-	suggestions
+	suggestions: suggestionList
 }: {
 	suggestions: Array<Suggestion>;
 }): ResultAsync<Suggestion[], DbError> {
 	return fromPromise(
-		db.insert(suggestion).values(suggestions).returning(),
+		db.insert(suggestions).values(suggestionList).returning(),
 		(e) => new DbInternalError({ cause: e })
 	);
 }
@@ -353,7 +355,7 @@ export function getSuggestionsByDocumentId({
 	documentId: string;
 }): ResultAsync<Suggestion[], DbError> {
 	return fromPromise(
-		db.select().from(suggestion).where(eq(suggestion.documentId, documentId)),
+		db.select().from(suggestions).where(eq(suggestions.documentId, documentId)),
 		(e) => new DbInternalError({ cause: e })
 	);
 }
@@ -361,7 +363,7 @@ export function getSuggestionsByDocumentId({
 export function getMessageById({ id }: { id: string }): ResultAsync<Message, DbError> {
 	return safeTry(async function* () {
 		const messageResult = yield* fromPromise(
-			db.select().from(message).where(eq(message.id, id)),
+			db.select().from(messages).where(eq(messages.id, id)),
 			(e) => new DbInternalError({ cause: e })
 		);
 
@@ -379,23 +381,23 @@ export function deleteMessagesByChatIdAfterTimestamp({
 	return safeTry(async function* () {
 		const messagesToDelete = yield* fromPromise(
 			db
-				.select({ id: message.id })
-				.from(message)
-				.where(and(eq(message.chatId, chatId), gte(message.createdAt, timestamp))),
+				.select({ id: messages.id })
+				.from(messages)
+				.where(and(eq(messages.chatId, chatId), gte(messages.created_at, timestamp))),
 			(e) => new DbInternalError({ cause: e })
 		);
-		const messageIds = messagesToDelete.map((message) => message.id);
+		const messageIds = messagesToDelete.map((messages) => messages.id);
 		if (messageIds.length > 0) {
-			const votes = fromPromise(
-				db.delete(vote).where(and(eq(vote.chatId, chatId), inArray(vote.messageId, messageIds))),
+			const votesDelete = fromPromise(
+				db.delete(votes).where(and(eq(votes.chatId, chatId), inArray(votes.messageId, messageIds))),
 				(e) => new DbInternalError({ cause: e })
 			);
-			const messages = fromPromise(
-				db.delete(message).where(and(eq(message.chatId, chatId), inArray(message.id, messageIds))),
+			const messagesDelete = fromPromise(
+				db.delete(messages).where(and(eq(messages.chatId, chatId), inArray(messages.id, messageIds))),
 				(e) => new DbInternalError({ cause: e })
 			);
-			yield* votes;
-			yield* messages;
+			yield* votesDelete;
+			yield* messagesDelete;
 		}
 		return ok(undefined);
 	});
@@ -403,10 +405,10 @@ export function deleteMessagesByChatIdAfterTimestamp({
 
 export function deleteTrailingMessages({ id }: { id: string }): ResultAsync<undefined, DbError> {
 	return safeTry(async function* () {
-		const message = yield* getMessageById({ id });
+		const messages = yield* getMessageById({ id });
 		yield* deleteMessagesByChatIdAfterTimestamp({
-			chatId: message.chatId,
-			timestamp: message.createdAt
+			chatId: messages.chatId,
+			timestamp: messages.created_at
 		});
 		return ok(undefined);
 	});
@@ -421,7 +423,7 @@ export function updateChatVisiblityById({
 }): ResultAsync<undefined, DbError> {
 	return safeTry(async function* () {
 		yield* fromPromise(
-			db.update(chat).set({ visibility }).where(eq(chat.id, chatId)),
+			db.update(chats).set({ visibility }).where(eq(chats.id, chatId)),
 			(e) => new DbInternalError({ cause: e })
 		);
 		return ok(undefined);
