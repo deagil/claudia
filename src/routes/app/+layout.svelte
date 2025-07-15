@@ -114,7 +114,7 @@
 									{@render ListItem({
 										href: '/app/organisation',
 										title: 'Organisation Settings',
-										content: `Manage settings for ${data.selectedOrg.name}`
+										content: `Manage settings for ${data.orgData?.name}`
 									})}
 									{@render ListItem({
 										href: '/signout',
@@ -179,7 +179,7 @@
 							</NavigationMenu.Content>
 						</NavigationMenu.Item>
 						<!-- command palette trigger -->
-						<NavigationMenu.Item>
+						<!-- <NavigationMenu.Item>
 							<NavigationMenu.Link>
 								<button
 									type="button"
@@ -198,8 +198,8 @@
 						</Tooltip.Provider>
 									
 								{/snippet} -->
-							</NavigationMenu.Link>
-						</NavigationMenu.Item>
+							<!-- </NavigationMenu.Link> -->
+						<!-- </NavigationMenu.Item> -->
 					</NavigationMenu.List>
 				</NavigationMenu.Root>
 			</div>
@@ -210,7 +210,7 @@
 				</div>
 			</div>
 		</div>
-		<div>
+		<!-- <div>
 			<header class="flex h-2 shrink-0 items-center gap-2 px-4">
 				<!-- <Breadcrumb.Root>
 					<Breadcrumb.List>
@@ -223,12 +223,12 @@
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root> -->
-			</header>
-		</div>
+			<!-- </header> -->
+		<!-- </div> -->
 		{#if data.sidebarCollapsed}
-		<div class="px-6 py-2">{@render children?.()}</div>
+		<div class="px-8 py-4">{@render children?.()}</div>
 		{:else}
-		<div class="px-2 py-2">{@render children?.()}</div>
+		<div class="px-4 py-4">{@render children?.()}</div>
 		{/if}
 		
 		
@@ -236,7 +236,8 @@
 	<AppSidebar {data} />
 </Sidebar.Provider>
 <Command.Dialog open={commandOpen} onOpenChange={(e) => (commandOpen = e.detail)}>
-	<Command.Input placeholder="Type a command or search..." />
+	<!-- todo -->
+	<Command.Input placeholder="You're too early! Come back later when this is wired up properly." />
 	<Command.List>
 		<Command.Empty>No results found.</Command.Empty>
 		<Command.Group heading="Suggestions">

@@ -1,5 +1,5 @@
 // src/routes/api/supabase/tables/+server.ts
-import { json } from '@sveltejs/kit';
+import { json, redirect } from '@sveltejs/kit';
 import { getUserSupabaseAccessToken } from '$lib/server/supabase/tokens';
 
 const debug = false;
@@ -23,12 +23,13 @@ async function getAllTables({ locals, cookies, url }) {
     }
     console.log('User session validated for user:', user.id);
 
-    const projectId = cookies.get('supabase_project_id');
+    const projectId = cookies.get('selected_sb_project');
     if (!projectId) {
-        return json({ error: 'No project selected' }, { status: 400 });
+        return redirect(307, '/app/connect/supabase');
     }
 
     const accessToken = await getUserSupabaseAccessToken(locals);
+    
     if (!accessToken) {
         return json({ error: 'No Supabase access token' }, { status: 401 });
     }
@@ -39,7 +40,7 @@ async function getAllTables({ locals, cookies, url }) {
 
     const apiUrl = `https://api.supabase.com/v1/projects/${projectId}/database/query`;
 
-    console.log('Making Supabase query with SQL:', sqlQuery.trim());
+    // console.log('Making Supabase query with SQL:', sqlQuery.trim());
 
     const res = await fetch(apiUrl, {
         body: JSON.stringify({ query: sqlQuery }),
@@ -57,7 +58,7 @@ async function getAllTables({ locals, cookies, url }) {
     }
 
     const tables = await res.json();
-    console.log('Received tables response:', tables);
+    // console.log('Received tables response:', tables);
     return json({ tables });
 }
 

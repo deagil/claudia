@@ -57,7 +57,7 @@
           </div>
         </Card>
         <Card variant="soft" class="overflow-hidden p-6">
-        <div class="bg-white rounded-lg flex items-center justify-center size-10 shadow">
+        <div class="bg-white rounded-lg flex items-center justify-center size-10">
             <img src="/logos/tally.svg" alt="Tally logo" class="size-8" />
         </div>
           <h3 class="text-foreground mt-5 text-lg font-semibold">

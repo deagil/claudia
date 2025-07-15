@@ -83,9 +83,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
   try {
     const {supabaseServiceRole, safeGetSession } = locals;
 
-    const user = await safeGetSession();
+    const session = await safeGetSession();
 
-    if (!user) {
+    if (!session.user) {
       return json({ error: 'Unauthorized, no user here' }, { status: 401 });
     }
 
@@ -99,7 +99,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     const { data, error } = await supabaseServiceRole
       .from('user_services')
       .select('config')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .eq('app', app)
       .single();
 

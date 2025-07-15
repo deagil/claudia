@@ -19,5 +19,6 @@ export const load: PageServerLoad = async ({
     throw redirect(303, '/app');
   }
   const { tables } = await res.json();
+  console.log(tables);
   return { tables: tables as Table[], session: session.session };
 }

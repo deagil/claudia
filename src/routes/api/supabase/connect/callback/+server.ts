@@ -75,7 +75,7 @@ export async function GET(event) {
 
     if (dbError) {
       // console.error('Error saving tokens:', dbError);
-      throw error(500, 'Failed to save tokens');
+      throw error(500, 'Failed to save tokens:' + dbError);
     }
 
     if (data) {
@@ -84,9 +84,9 @@ export async function GET(event) {
   } else {
     console.log('No user ID found in session, cannot save tokens');
   }
-
+  
   // Optionally, you can also store the tokens in a secure cookie or session
-  // cookies.set('supabase_token', tokens.access_token, { path: '/' });
+  // cookies.set('supabase_org', tokens.access_token, { path: '/' });
 
   // Optionally clear the cookies
   cookies.delete('code_verifier', { path: '/' });

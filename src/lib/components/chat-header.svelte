@@ -175,8 +175,7 @@
 			</Menubar.Content>
 		</Menubar.Menu>
 	</Menubar.Root>
-	{#if chatTitle}
+	<!-- {#if chatTitle}
 		<h1 class="text-lg font-bold">{chatTitle}</h1>
-	{/if}
-	<SidebarTrigger/>
+	{/if} -->
 </header>

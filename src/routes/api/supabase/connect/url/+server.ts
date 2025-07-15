@@ -1,5 +1,5 @@
 // src/routes/api/supabse/connect/url/+server.ts
-import { OAUTH_CLIENT_ID, OAUTH_REDIRECT_URI } from '$env/static/private';
+import { SUPABASE_OAUTH_CLIENT_ID, SUPABASE_OAUTH_REDIRECT_URI } from '$env/static/private';
 import { json } from '@sveltejs/kit';
 import { randomBytes, createHash } from 'crypto';
 
@@ -33,8 +33,8 @@ export async function GET({ cookies }) {
 
   // Construct the authorization URL
   const url = new URL(AUTH_URL);
-  url.searchParams.append('client_id', OAUTH_CLIENT_ID);
-  url.searchParams.append('redirect_uri', OAUTH_REDIRECT_URI);
+  url.searchParams.append('client_id', SUPABASE_OAUTH_CLIENT_ID);
+  url.searchParams.append('redirect_uri', SUPABASE_OAUTH_REDIRECT_URI);
   url.searchParams.append('response_type', RESPONSE_TYPE);
   url.searchParams.append('code_challenge', codeChallenge);
   url.searchParams.append('code_challenge_method', CODE_CHALLENGE_METHOD);

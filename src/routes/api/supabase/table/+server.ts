@@ -18,7 +18,7 @@ export async function GET({ url, locals, cookies }) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const projectId = cookies.get('supabase_project_id');
+  const projectId = cookies.get('selected_sb_project');
   if (!projectId) {
     return json({ error: 'No project selected' }, { status: 400 });
   }

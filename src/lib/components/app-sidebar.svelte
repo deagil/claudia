@@ -5,7 +5,7 @@
 	import { convertToUIMessages } from "$lib/utils/chat.js";
 	import { ChatHistory } from '$lib/hooks/chat-history.svelte';
 
-	let { data, children } = $props();
+	let { data } = $props();
 
 	import { onMount } from 'svelte';
 

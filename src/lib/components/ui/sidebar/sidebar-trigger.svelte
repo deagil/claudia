@@ -4,6 +4,8 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import type { ComponentProps } from 'svelte';
 	import { useSidebar } from './context.svelte.js';
+	import { fade } from 'svelte/transition';
+	import { cubicIn, cubicOut, expoInOut, expoOut, linear } from 'svelte/easing';
 
 	let {
 		ref = $bindable(null),
@@ -17,7 +19,8 @@
 	const sidebar = useSidebar();
 </script>
 
-{#if !sidebar.open}
+{#if !sidebar.props.open()}
+<div transition:fade={{duration: 300, easing: cubicOut}}>
 <Tooltip.Provider>
 	<Tooltip.Root>
 		<Tooltip.Trigger
@@ -25,7 +28,7 @@
 				data-sidebar="trigger"
 				data-slot="sidebar-trigger"
 				variant="outline"
-				class="md:h-fit md:px-2"
+				class="md:h-fit md:px-2 cursor-pointer"
 				type="button"
 				onclick={(e) => {
 					onclick?.(e);
@@ -46,5 +49,5 @@
 		</Tooltip.Content>
 	</Tooltip.Root>
 </Tooltip.Provider>
+</div>
 {/if}
-

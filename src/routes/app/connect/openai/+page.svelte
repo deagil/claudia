@@ -123,7 +123,7 @@
     <Card class="w-full max-w-xl">
         <CardHeader class="flex flex-col items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                <KeyIcon class="h-6 w-6 text-green-600 dark:text-green-400" />
+                <img src="/logos/openai.svg" alt="OpenAI logo" class="h-6 w-6  text-green-600 dark:text-green-400" />
             </div>
             <CardTitle class="text-2xl">OpenAI API Key Setup</CardTitle>
             <CardDescription class="text-center">
