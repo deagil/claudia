@@ -1,65 +1,72 @@
+<!-- DataTableActions.svelte -->
 <script lang="ts">
-	import Ellipsis from '@lucide/svelte/icons/ellipsis';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import type { SvelteComponent } from 'svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { MoreHorizontal } from '@lucide/svelte';
 
-	type Action = {
+	export interface TableAction {
 		label: string;
-		icon?: typeof SvelteComponent;
-		onClick: (row: unknown) => void;
-		show?: boolean | ((row: unknown) => boolean);
+		icon: any;
+		onClick: (row: any) => void;
+		show: boolean;
 		group?: string;
-	};
+		variant?: 'default' | 'destructive';
+	}
 
-	const { actions, row }: { actions: Action[]; row: unknown } = $props();
+	interface Props {
+		row: any;
+		actions: TableAction[];
+	}
 
-	// Group actions by group property
-	const grouped = actions
-		.filter(
-			(action) =>
-				action.show === undefined ||
-				(typeof action.show === 'function' ? action.show(row) : action.show),
-		)
-		.reduce(
-			(acc, action) => {
-				const group = action.group ?? 'Other';
-				if (!acc[group]) acc[group] = [];
-				acc[group].push(action);
-				return acc;
-			},
-			{} as Record<string, Action[]>,
-		);
+	const { row, actions } = $props<Props>();
 
-	const groupOrder = ['', 'builder', 'admin']; // customize as needed
+	// Group actions by their group property
+	const groupedActions = $derived(actions.reduce((acc, action) => {
+		if (!action.show) return acc;
+		
+		const group = action.group || 'default';
+		if (!acc[group]) {
+			acc[group] = [];
+		}
+		acc[group].push(action);
+		return acc;
+	}, {} as Record<string, TableAction[]>));
+
+	const visibleActions = $derived(actions.filter(action => action.show));
 </script>
 
-<DropdownMenu.Root>
-	<DropdownMenu.Trigger>
-		<Button variant="outline">Actions</Button>
-	</DropdownMenu.Trigger>
-	<DropdownMenu.Content>
-		{#each groupOrder as group, i}
-			{#if grouped[group]}
-				<DropdownMenu.Group>
-					{#if group != ''}
-						<DropdownMenu.GroupHeading>
-							{group.charAt(0).toUpperCase() + group.slice(1)} Actions
-						</DropdownMenu.GroupHeading>
-					{/if}
-					{#each grouped[group] as action (action.label)}
-						<DropdownMenu.Item onclick={() => action.onClick(row)}>
-							{#if action.icon}
-								<action.icon class="mr-2" />
-							{/if}
-							{action.label}
-						</DropdownMenu.Item>
-					{/each}
-				</DropdownMenu.Group>
-				{#if i < groupOrder.length - 1}
+{#if visibleActions.length > 0}
+	<DropdownMenu.Root>
+		<DropdownMenu.Trigger>
+			<Button
+				variant="ghost"
+				size="sm"
+				class="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+			>
+				<MoreHorizontal class="h-4 w-4" />
+				<span class="sr-only">Open menu</span>
+			</Button>
+		</DropdownMenu.Trigger>
+		<DropdownMenu.Content align="end" class="w-[200px]">
+			<DropdownMenu.Label>Actions</DropdownMenu.Label>
+			<DropdownMenu.Separator />
+			
+			{#each Object.entries(groupedActions) as [groupName, groupActions], groupIndex}
+				{#if groupIndex > 0}
 					<DropdownMenu.Separator />
 				{/if}
-			{/if}
-		{/each}
-	</DropdownMenu.Content>
-</DropdownMenu.Root>
+				
+				{#each groupActions as action}
+					<DropdownMenu.Item
+						class="flex items-center gap-2 {action.variant === 'destructive' ? 'text-destructive focus:text-destructive' : ''}"
+						onclick={() => action.onClick(row)}
+					>
+						<svelte:component this={action.icon} class="h-4 w-4" />
+						{action.label}
+					</DropdownMenu.Item>
+				{/each}
+			{/each}
+		</DropdownMenu.Content>
+	</DropdownMenu.Root>
+{/if}

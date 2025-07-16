@@ -82,7 +82,7 @@
 			<!--uncomment below div to make the navbar centered -->
 			<!-- <div class="flex-1"></div> -->
 			<!-- Centered navigation menu -->
-			<div class="justify-left flex flex-1">
+			<div class="justify-left flex flex-1 relative z-99">
 				<NavigationMenu.Root viewport={false}>
 					<NavigationMenu.List>
 						<NavigationMenu.Item>
