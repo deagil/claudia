@@ -21,7 +21,7 @@ async function getRecordDetails({ locals, cookies, url }) {
     }
     log('User session validated for user:', user.id);
 
-    const projectId = cookies.get('supabase_project_id');
+    const projectId = cookies.get('selected_sb_project');
     if (!projectId) {
         return json({ error: 'No project selected' }, { status: 400 });
     }

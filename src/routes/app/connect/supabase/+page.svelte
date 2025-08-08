@@ -123,6 +123,26 @@
 		loading = false;
 	}
 
+	async function enableHistory() {
+		loading = true;
+		status = null;
+		error = null;
+		try {
+			const res = await fetch('/api/supabase/enable_history',{
+				method: 'POST'
+			});
+			if (res.ok) {
+				const { authorizationUrl } = await res.json();
+				window.location.href = authorizationUrl;
+			} else {
+				error = 'Failed to initiate Supabase connection';
+			}
+		} catch (e) {
+			error = 'Failed to initiate Supabase connection';
+		}
+		loading = false;
+	}
+
 	let { data } = $props();
 </script>
 
@@ -296,7 +316,7 @@
 									</AlertDialog.Header>
 									<AlertDialog.Footer>
 										<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-										<AlertDialog.Action class="cursor-pointer bg-green-400 hover:bg-green-300">
+										<AlertDialog.Action onclick={()=> enableHistory()} class="cursor-pointer bg-green-500 hover:bg-green-300">
 											Run SQL and enable History
 										</AlertDialog.Action>
 									</AlertDialog.Footer>
