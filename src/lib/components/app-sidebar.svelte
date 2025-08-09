@@ -22,6 +22,15 @@
 	// Get the current chat from chatHistory if available, fallback to data.chat
 	const currentChat = $derived.by(() => chatHistory?.getChatDetails(data?.chat?.id) ?? data?.chat);
 	const chatTitle = $derived.by(() => currentChat?.title ?? 'Chat');
+	
+	// Debug messages being passed to Chat component
+	$effect(() => {
+		console.log('[AppSidebar] Chat data:', {
+			chat: data?.chat ? { title: data.chat.title, id: data.chat.id } : null,
+			messagesCount: data?.messages?.length ?? 0,
+			messages: data?.messages
+		});
+	});
 
 	function handleSelectChat(chatId: string) {
 		// Use the callback if provided, otherwise do nothing
@@ -35,11 +44,11 @@
 <div class="">
 		<Sidebar.Root variant="floating" side="right">
 			<Chat
-			chat={data?.chat}
-			initialMessages={convertToUIMessages(data?.messages ?? [])}
-			readonly={data?.user?.id !== data?.chat?.userId}
-			user={data?.user}
-			onSelectChat={handleSelectChat}
-		/>
+				chat={data?.chat}
+				initialMessages={convertToUIMessages(data?.messages ?? [])}
+				readonly={data?.user?.id !== data?.chat?.userId}
+				user={data?.user}
+				onSelectChat={data?.onSelectChat}
+			/>
 	</Sidebar.Root>
 </div>

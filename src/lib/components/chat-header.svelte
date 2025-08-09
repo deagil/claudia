@@ -52,7 +52,7 @@
 		}
 	}
 
-	console.log('[ChatHeader] chatHistory:', chatHistory);
+	// Debug output moved to $effect below
 
 	const currentChat = $derived.by(
 		() => (chat?.id ? chatHistory?.getChatDetails(chat.id) : undefined) ?? chat,
@@ -67,13 +67,23 @@
 		}
 	}
 
+	function handleNewChat() {
+		// Clear the current chat to show a new chat interface
+		goto('/', {
+			invalidateAll: true
+		});
+	}
+
 	$effect(() => {
-		console.log('[ChatHeader] chatHistory:', chatHistory);
+		console.log('[ChatHeader] chatHistory:', () => chatHistory);
 		console.log('[ChatHeader] chat:', chat);
 		console.log('[ChatHeader] currentChat:', currentChat);
 		console.log('[ChatHeader] chatTitle:', chatTitle);
 		if (chatHistory) {
-			console.log('[ChatHeader] chatHistory.chats:', chatHistory.chats);
+			console.log('[ChatHeader] chatHistory.chats:');
+			chatHistory.chats.forEach((c, i) => {
+				console.log(`  [${i}] ${c.title} -> ${c.id}`);
+			});
 		}
 	});
 
@@ -91,11 +101,7 @@
 						{...props}
 						variant="outline"
 						class="order-2 ml-auto px-2 md:order-1 md:ml-0 md:h-fit md:px-2"
-						onclick={() => {
-							goto('/', {
-								invalidateAll: true
-							});
-						}}
+						onclick={handleNewChat}
 					>
 						<PlusIcon />
 						<span class="md:sr-only">New Chat</span>
@@ -123,7 +129,7 @@
 			<!-- Chat -->
 			<Menubar.Trigger><MessageCircle class="size-4 mr-1"/>Chat</Menubar.Trigger>
 			<Menubar.Content>
-				<Menubar.Item>
+				<Menubar.Item onclick={handleNewChat}>
 					New Chat <Menubar.Shortcut>⌘T</Menubar.Shortcut>
 				</Menubar.Item>
 				<Menubar.Separator />
@@ -131,9 +137,24 @@
 					<Menubar.SubTrigger>History</Menubar.SubTrigger>
 					<Menubar.SubContent>				<!-- previous chats here -->
 					 {#if chatHistory && chatHistory.chats.length > 0}
-						{#each chatHistory.chats as chat}
-							<Menubar.Item onclick={() => handleSelectChat(chat.id)}>
-								{chat.title}
+						{#each chatHistory.chats as chat, index (chat.id)}
+							<Menubar.Item>
+								<button 
+									class="w-full text-left"
+									onclick={() => {
+										console.log('[ChatHeader] === MENU CLICK DEBUG ===');
+										console.log('[ChatHeader] Clicked index:', index);
+										console.log('[ChatHeader] Chat object:', { title: chat.title, id: chat.id, created_at: chat.created_at });
+										console.log('[ChatHeader] All chats at click time:');
+										chatHistory.chats.forEach((c, i) => {
+											console.log(`  [${i}] ${c.title} -> ${c.id}`);
+										});
+										console.log('[ChatHeader] === END CLICK DEBUG ===');
+										handleSelectChat(chat.id);
+									}}
+								>
+									{chat.title}
+								</button>
 							</Menubar.Item>
 						{/each}
 					 {/if}

@@ -16,14 +16,49 @@
 	import { navigating } from '$app/stores';
 	import { expoOut } from 'svelte/easing';
 	import { slide } from 'svelte/transition';
+	import { convertToUIMessages } from '$lib/utils/chat.js';
+	import type { Chat, Message } from '$lib/server/db/schema';
 
 	let { data, children } = $props();
 	let commandOpen = $state(false);
 	const sessions = data.sessionData;
 	
-	const chatHistory = new ChatHistory(data.chats);
+	const chatHistory = new ChatHistory(Promise.resolve(data.chats));
 	chatHistory.setContext();
+	
+	// Debug chat history loading
+	$effect(() => {
+		console.log('[App Layout] ChatHistory chats loaded:', chatHistory.chats.length);
+		chatHistory.chats.forEach((chat, index) => {
+			console.log(`[App Layout] Chat ${index}:`, { title: chat.title, id: chat.id, created_at: chat.created_at });
+		});
+	});
 	data.selectedChatModel.setContext();
+
+	let selectedChat = $state<Chat | null>(null);
+	let messages = $state<Message[]>([]);
+
+	async function fetchMessages(chatId: string) {
+		console.log('[App Layout] Fetching messages for chatId:', chatId);
+		const res = await fetch(`/api/chat/messages/${chatId}`);
+		if (res.ok) {
+			messages = await res.json();
+			console.log('[App Layout] Messages received:', messages.length, 'messages');
+		} else {
+			console.error('[App Layout] Failed to fetch messages:', res.status, res.statusText);
+		}
+	}
+
+	async function handleSelectChat(chatId: string) {
+		console.log('[App Layout] handleSelectChat called with chatId:', chatId);
+		const chat = chatHistory.chats.find((c) => c.id === chatId);
+		console.log('[App Layout] Found chat:', chat ? { title: chat.title, id: chat.id } : 'NOT FOUND');
+		if (chat) {
+			selectedChat = chat;
+			await fetchMessages(chatId);
+			console.log('[App Layout] Messages fetched, count:', messages.length);
+		}
+	}
 
 	function toggleCommand() {
 		commandOpen = !commandOpen;
@@ -233,9 +268,14 @@
 		
 		
 	</Sidebar.Inset>
-	<AppSidebar {data} />
+	<AppSidebar data={{
+		...data,
+		chat: selectedChat,
+		messages: messages,
+		onSelectChat: handleSelectChat
+	}} />
 </Sidebar.Provider>
-<Command.Dialog open={commandOpen} onOpenChange={(e) => (commandOpen = e.detail)}>
+<Command.Dialog bind:open={commandOpen}>
 	<!-- todo -->
 	<Command.Input placeholder="You're too early! Come back later when this is wired up properly." />
 	<Command.List>

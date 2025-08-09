@@ -168,7 +168,7 @@ export function deleteChatById({ id }: { id: string }): ResultAsync<undefined, D
 	return safeTry(async function* () {
 		const actions = [
 			() => db.delete(votes).where(eq(votes.chatId, id)),
-			() => db.delete(messages).where(eq(messages.chatId, id)),
+			() => db.delete(messages).where(eq(messages.chat_id, id)),
 			() => db.delete(chats).where(eq(chats.id, id))
 		];
 
@@ -216,7 +216,7 @@ export function saveMessages({
 export function getMessagesByChatId({ id }: { id: string }): ResultAsync<Message[], DbError> {
 	return safeTry(async function* () {
 		const result = yield* fromPromise(
-			db.select().from(messages).where(eq(messages.chatId, id)).orderBy(asc(messages.created_at)),
+			db.select().from(messages).where(eq(messages.chat_id, id)).orderBy(asc(messages.created_at)),
 			(e) => new DbInternalError({ cause: e })
 		);
 
@@ -383,7 +383,7 @@ export function deleteMessagesByChatIdAfterTimestamp({
 			db
 				.select({ id: messages.id })
 				.from(messages)
-				.where(and(eq(messages.chatId, chatId), gte(messages.created_at, timestamp))),
+				.where(and(eq(messages.chat_id, chatId), gte(messages.created_at, timestamp))),
 			(e) => new DbInternalError({ cause: e })
 		);
 		const messageIds = messagesToDelete.map((messages) => messages.id);
@@ -393,7 +393,7 @@ export function deleteMessagesByChatIdAfterTimestamp({
 				(e) => new DbInternalError({ cause: e })
 			);
 			const messagesDelete = fromPromise(
-				db.delete(messages).where(and(eq(messages.chatId, chatId), inArray(messages.id, messageIds))),
+				db.delete(messages).where(and(eq(messages.chat_id, chatId), inArray(messages.id, messageIds))),
 				(e) => new DbInternalError({ cause: e })
 			);
 			yield* votesDelete;
@@ -407,7 +407,7 @@ export function deleteTrailingMessages({ id }: { id: string }): ResultAsync<unde
 	return safeTry(async function* () {
 		const messages = yield* getMessageById({ id });
 		yield* deleteMessagesByChatIdAfterTimestamp({
-			chatId: messages.chatId,
+			chatId: messages.chat_id,
 			timestamp: messages.created_at
 		});
 		return ok(undefined);

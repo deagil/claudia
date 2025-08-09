@@ -34,7 +34,7 @@ export const sessions = pgTable('sessions', {
 export type Session = InferSelectModel<typeof sessions>;
 
 export const chats = pgTable('chats', {
-	id: uuid('id').primaryKey().notNull().defaultRandom().primaryKey(),
+	id: uuid('id').primaryKey().notNull().defaultRandom(),
 	created_at: timestamp('created_at').notNull(),
 	title: text('title').notNull(),
 	user_id: uuid('user_id')

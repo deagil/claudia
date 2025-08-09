@@ -32,12 +32,21 @@
 
 	const chatHistory = ChatHistory.fromContext();
 
+	// Debug chat changes
+	$effect(() => {
+		console.log('[Chat] Props updated:', {
+			chatId: chat?.id,
+			chatTitle: chat?.title,
+			initialMessagesCount: initialMessages.length,
+			initialMessages: initialMessages
+		});
+	});
+
 	const chatClient = $derived(
 		new Chat({
 			id: chat?.id,
-			// This way, the client is only recreated when the ID changes, allowing us to fully manage messages
-			// clientside while still SSRing them on initial load or when we navigate to a different chat.
-			initialMessages: untrack(() => initialMessages),
+			// Allow initialMessages to be reactive so the chat updates when switching between chats
+			initialMessages: initialMessages,
 			sendExtraMessageFields: true,
 			generateId: crypto.randomUUID.bind(crypto),
 			onFinish: async () => {
