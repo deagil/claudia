@@ -8,33 +8,37 @@ export async function load({ locals, params }) {
 	}
 
 	// Validate step parameter
-	const validSteps = ['org', 'profile'];
+	const validSteps = ['workspace', 'profile'];
 	if (!validSteps.includes(params.step)) {
-		return redirect(307, '/onboarding/org');
+		return redirect(307, '/onboarding/workspace');
 	}
 
-	// If step is profile, ensure user has an organization
+	// If step is profile, ensure user has a workspace
 	if (params.step === 'profile') {
 		const { data: { user } } = await locals.supabase.auth.getUser();
 		if (!user) {
 			return redirect(307, '/signin');
 		}
 
-		const { data: orgs } = await locals.supabase
-			.from('org_users')
-			.select('org_id')
+		const { data: workspaces } = await locals.supabase
+			.from('workspace_users')
+			.select('workspace_id')
 			.eq('user_id', user.id);
 
-		if (!orgs || orgs.length === 0) {
-			return redirect(307, '/onboarding/org');
+		if (!workspaces || workspaces.length === 0) {
+			return redirect(307, '/onboarding/workspace');
 		}
 	}
+
+	return {
+		step: params.step
+	};
 }
 
 // Validation schemas
-const orgSchema = z.object({
-	orgName: z.string().min(1, 'Organization name is required').max(100),
-	orgDescription: z.string().max(500).optional()
+const workspaceSchema = z.object({
+	workspaceName: z.string().min(1, 'Workspace name is required').max(100),
+	workspaceDescription: z.string().max(500).optional()
 });
 
 const profileSchema = z.object({
@@ -58,53 +62,53 @@ export const actions = {
 		const formData = await request.formData();
 		const step = params.step;
 
-		if (step === 'org') {
-			// Handle organization creation
+		if (step === 'workspace') {
+			// Handle workspace creation
             console.log(user);
 
-			const orgData = {
-				orgName: formData.get('orgName'),
-				orgDescription: formData.get('orgDescription') || ''
+			const workspaceData = {
+				workspaceName: formData.get('workspaceName'),
+				workspaceDescription: formData.get('workspaceDescription') || ''
 			};
 
-			const validation = orgSchema.safeParse(orgData);
+			const validation = workspaceSchema.safeParse(workspaceData);
 			if (!validation.success) {
 				const firstError = validation.error.issues[0];
 				return fail(400, {
 					success: false,
 					message: firstError.message,
-					orgName: orgData.orgName as string,
-					orgDescription: orgData.orgDescription as string
+					workspaceName: workspaceData.workspaceName as string,
+					workspaceDescription: workspaceData.workspaceDescription as string
 				});
 			}
 
 			const { data: validatedData } = validation;
 
-			// Create organization
-			const { data: org, error: orgError } = await locals.supabase
-				.from('orgs')
+			// Create workspace
+			const { data: workspace, error: workspaceError } = await locals.supabase
+				.from('workspaces')
 				.insert({
-					name: validatedData.orgName,
-					description: validatedData.orgDescription || null,
+					name: validatedData.workspaceName,
+					description: validatedData.workspaceDescription || null,
                     owner_user_id: user.id
 				})
 				.select()
 				.single();
 
-			if (orgError) {
+			if (workspaceError) {
 				return fail(500, {
 					success: false,
-					message: 'Failed to create organisation: ' + orgError.message,
-					orgName: validatedData.orgName,
-					orgDescription: validatedData.orgDescription
+					message: 'Failed to create workspace: ' + workspaceError.message,
+					workspaceName: validatedData.workspaceName,
+					workspaceDescription: validatedData.workspaceDescription
 				});
 			}
 
-			// Add user to organization as owner/admin
+			// Add user to workspace as owner/admin
 			const { error: memberError } = await locals.supabase
-				.from('org_users')
+				.from('workspace_users')
 				.insert({
-					org_id: org.id,
+					workspace_id: workspace.id,
 					user_id: user.id,
 					role: 'admin' // or 'owner'
 				});
@@ -112,7 +116,7 @@ export const actions = {
 			if (memberError) {
 				return fail(500, {
 					success: false,
-					message: 'Failed to add user to organization: ' + memberError.message
+					message: 'Failed to add user to workspace: ' + memberError.message
 				});
 			}
 
@@ -144,7 +148,7 @@ export const actions = {
 			// Handle avatar upload if provided
 			if (validatedData.avatar && validatedData.avatar.size > 0) {
 				const fileName = `${user.id}-${Date.now()}.${validatedData.avatar.name.split('.').pop()}`;
-				
+				console.log("Saving avatar as:", fileName);
 				const { data: uploadData, error: uploadError } = await locals.supabase.storage
 					.from('avatars')
 					.upload(fileName, validatedData.avatar, {

@@ -1,16 +1,27 @@
 //$lib/stores/workspace.ts
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import { goto } from '$app/navigation';
+import { setContext, getContext } from 'svelte';
+
+interface Workspace {
+	id: string;
+	name: string;
+	description?: string;
+}
 
 export class WorkspaceState {
-	constructor(initialWorkspace, allWorkspaces) {
+	selectedWorkspace: Writable<Workspace | null>;
+	workspaces: Writable<Workspace[]>;
+	isLoading: Writable<boolean>;
+
+	constructor(initialWorkspace: Workspace | null, allWorkspaces: Workspace[]) {
 		this.selectedWorkspace = writable(initialWorkspace);
 		this.workspaces = writable(allWorkspaces || []);
 		this.isLoading = writable(false);
 	}
 
 	// Set the selected workspace and update cookie
-	async setSelectedWorkspace(workspaceId) {
+	async setSelectedWorkspace(workspaceId: string) {
 		this.isLoading.set(true);
 		
 		try {
@@ -42,15 +53,15 @@ export class WorkspaceState {
 	}
 
 	// Get current workspaces
-	async getWorkspaces() {
-		let workspaces = [];
+	async getWorkspaces(): Promise<Workspace[]> {
+		let workspaces: Workspace[] = [];
 		this.workspaces.subscribe(value => workspaces = value)();
 		return workspaces;
 	}
 
 	// Get current selected workspace
-	async getSelectedWorkspace() {
-		let workspace = null;
+	async getSelectedWorkspace(): Promise<Workspace | null> {
+		let workspace: Workspace | null = null;
 		this.selectedWorkspace.subscribe(value => workspace = value)();
 		return workspace;
 	}
@@ -64,7 +75,7 @@ export class WorkspaceState {
 }
 
 // Helper function to get workspace state from context
-export function getWorkspaceState() {
+export function getWorkspaceState(): WorkspaceState | null {
 	if (typeof getContext !== 'undefined') {
 		return getContext('workspaceState');
 	}

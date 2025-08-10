@@ -8,26 +8,36 @@ export async function load({ cookies, locals, url }) {
 	const sessionData = await safeGetSession();
 
 	const { user } = await safeGetSession();
-	const selectedOrgId = cookies.get('selected-org');
+	const selectedWorkspaceId = cookies.get('selected-workspace');
 	
 	if (!user) {
 		return redirect(303, '/signin');
 	}
-	if (!selectedOrgId && !url.pathname.startsWith('/app/select-org')) {
-  		return redirect(303, '/app/select-org');
+	if (!selectedWorkspaceId && !url.pathname.startsWith('/app/select-workspace')) {
+  		return redirect(303, '/app/select-workspace');
 	}
 
-	//select new org if currently selected org not in user metadata
-	if (selectedOrgId && !Object.keys(sessionData.user?.app_metadata.orgs).includes(selectedOrgId) && !url.pathname.startsWith('/app/select-org')) {
-		return redirect(303, '/app/select-org');
+	// Validate that the user has access to the selected workspace
+	const { data: userWorkspaces } = await supabase
+		.from('workspace_users')
+		.select('workspace_id')
+		.eq('user_id', sessionData.user?.id);
+	
+	const userWorkspaceIds = userWorkspaces?.map(row => row.workspace_id) || [];
+	if (selectedWorkspaceId && !userWorkspaceIds.includes(selectedWorkspaceId) && !url.pathname.startsWith('/app/select-workspace')) {
+		return redirect(303, '/app/select-workspace');
 	}
 
 	const { data: profileData, error: profileError } = await supabase.from('users').select('firstname,lastname,avatar_url').eq('id', sessionData.user?.id).single();
-	const { data: orgData, error: orgError } = await supabase.from('orgs').select('*').eq('id', selectedOrgId).single();
+	const { data: workspaceData, error: workspaceError } = await supabase.from('workspaces').select('*').eq('id', selectedWorkspaceId).single();
 
-	// const { error: sessionError } = await supabase.from('orgs').select().eq('user_id', sessiondata.user?.app_metadata.orgs).single();	
 	console.log('Loaded user profile data:', profileData, 'Error:', profileError);
-	console.log('Loaded user organization data:', orgData, 'Error:', orgError);
+	console.log('Loaded user workspace data:', workspaceData, 'Error:', workspaceError);
+
+	if (selectedWorkspaceId && workspaceError) {
+		console.error('Workspace error:', workspaceError);
+		return redirect(303, '/app/select-workspace');
+	}
 
 	const sidebarCollapsed = cookies.get('sidebar:state') !== 'true';
 
@@ -42,15 +52,15 @@ export async function load({ cookies, locals, url }) {
 		});
 	}
 
-	console.log('wme	fe3fkm');
-	console.log(orgData);
+	console.log('workspace data:');
+	console.log(workspaceData);
 
 	return {
 		sessionData,
 		profileData,
-		orgData,
+		workspaceData,
 		sidebarCollapsed,
-		selectedOrgId,
+		selectedWorkspaceId,
 		selectedChatModel: new SelectedModel(modelId)
 	};
 }

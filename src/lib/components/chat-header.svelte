@@ -116,9 +116,11 @@
 		<ModelSelector class="order-1 md:order-2" />
 	{/if} -->
 
+	<!-- Visibility toggle hidden for now
 	{#if !readonly && chat}
 		<VisibilitySelector {chat} class="order-1 md:order-3" />
 	{/if}
+	-->
 
 	<!-- {#if !user}
 		<Button href="/signin" class="order-5 px-2 py-1.5 md:h-[34px]">Sign In</Button>
@@ -141,17 +143,7 @@
 							<Menubar.Item>
 								<button 
 									class="w-full text-left"
-									onclick={() => {
-										console.log('[ChatHeader] === MENU CLICK DEBUG ===');
-										console.log('[ChatHeader] Clicked index:', index);
-										console.log('[ChatHeader] Chat object:', { title: chat.title, id: chat.id, created_at: chat.created_at });
-										console.log('[ChatHeader] All chats at click time:');
-										chatHistory.chats.forEach((c, i) => {
-											console.log(`  [${i}] ${c.title} -> ${c.id}`);
-										});
-										console.log('[ChatHeader] === END CLICK DEBUG ===');
-										handleSelectChat(chat.id);
-									}}
+									onclick={() => handleSelectChat(chat.id)}
 								>
 									{chat.title}
 								</button>

@@ -77,7 +77,8 @@
 							{/if}
 							<div
 								class={cn('flex flex-col gap-4', {
-									'bg-primary text-primary-foreground rounded-xl px-3 py-2': message.role === 'user'
+									'bg-primary text-primary-foreground rounded-xl px-3 py-2': message.role === 'user',
+									'bg-muted rounded-xl px-3 py-2': message.role === 'assistant'
 								})}
 							>
 								<Markdown md={part.text} />

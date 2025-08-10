@@ -8,7 +8,7 @@ import {
 	user,
 	chats,
 	type User,
-	document,
+	documents,
 	type Suggestion,
 	suggestions,
 	type Message,
@@ -273,10 +273,10 @@ export async function saveDocument({
 	user_id: string;
 }) {
 	try {
-		return await db.insert(document).values({
+		return await db.insert(documents).values({
 			id,
 			title,
-			kind,
+			text: kind,
 			content,
 			user_id,
 			created_at: new Date()
@@ -289,13 +289,13 @@ export async function saveDocument({
 
 export async function getDocumentsById({ id }: { id: string }) {
 	try {
-		const documents = await db
+		const documentsResult = await db
 			.select()
-			.from(document)
-			.where(eq(document.id, id))
-			.orderBy(asc(document.created_at));
+			.from(documents)
+			.where(eq(documents.id, id))
+			.orderBy(asc(documents.created_at));
 
-		return documents;
+		return documentsResult;
 	} catch (error) {
 		console.error('Failed to get document by id from database');
 		throw error;
@@ -306,9 +306,9 @@ export async function getDocumentById({ id }: { id: string }) {
 	try {
 		const [selectedDocument] = await db
 			.select()
-			.from(document)
-			.where(eq(document.id, id))
-			.orderBy(desc(document.created_at));
+			.from(documents)
+			.where(eq(documents.id, id))
+			.orderBy(desc(documents.created_at));
 
 		return selectedDocument;
 	} catch (error) {
@@ -327,11 +327,11 @@ export async function deleteDocumentsByIdAfterTimestamp({
 	try {
 		await db
 			.delete(suggestions)
-			.where(and(eq(suggestions.documentId, id), gt(suggestions.documentCreatedAt, timestamp)));
+			.where(and(eq(suggestions.document_id, id), gt(suggestions.document_created_at, timestamp)));
 
 		return await db
-			.delete(document)
-			.where(and(eq(document.id, id), gt(document.created_at, timestamp)));
+			.delete(documents)
+			.where(and(eq(documents.id, id), gt(documents.created_at, timestamp)));
 	} catch (error) {
 		console.error('Failed to delete documents by id after timestamp from database');
 		throw error;
@@ -355,7 +355,7 @@ export function getSuggestionsByDocumentId({
 	documentId: string;
 }): ResultAsync<Suggestion[], DbError> {
 	return fromPromise(
-		db.select().from(suggestions).where(eq(suggestions.documentId, documentId)),
+		db.select().from(suggestions).where(eq(suggestions.document_id, documentId)),
 		(e) => new DbInternalError({ cause: e })
 	);
 }

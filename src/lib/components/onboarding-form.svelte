@@ -5,12 +5,12 @@
 	export type FormFailureData = {
 		success: false;
 		message: string;
-		orgName?: string;
-		orgDescription?: string;
+		workspaceName?: string;
+		workspaceDescription?: string;
 		firstname?: string;
 		lastname?: string;
 	};
-	export type FormData = FormSuccessData | FormFailureData;
+	export type FormData = FormSuccessData | FormFailureData | null;
 
 	export type OnboardingFormProps = {
 		form?: FormData;
@@ -32,7 +32,7 @@
 
 	let pending = $state(false);
 	let avatarPreview = $state<string | null>(null);
-	let fileInput: HTMLInputElement | null = null;
+	let fileInput: HTMLInputElement | null = $state(null);
 
 	const enhanceCallback: SubmitFunction<FormSuccessData, FormFailureData> = () => {
 		pending = true;
@@ -60,36 +60,36 @@
 		}
 	};
 
-	const isOrgStep = $derived(step === 'org');
+	const isWorkspaceStep = $derived(step === 'workspace');
 	const isProfileStep = $derived(step === 'profile');
 </script>
 
 <form method="POST" class="flex flex-col gap-4 px-4 sm:px-16" use:enhance={enhanceCallback} enctype="multipart/form-data">
-	{#if isOrgStep}
-		<!-- Organization setup fields -->
+	{#if isWorkspaceStep}
+		<!-- Workspace setup fields -->
 		<div class="flex flex-col gap-2">
-			<Label for="orgName" class="text-zinc-600 dark:text-zinc-400"> Team Name</Label>
+			<Label for="workspaceName" class="text-zinc-600 dark:text-zinc-400"> Workspace Name</Label>
 			<Input
-				id="orgName"
-				name="orgName"
+				id="workspaceName"
+				name="workspaceName"
 				class="text-md bg-muted md:text-sm"
 				type="text"
 				placeholder="Pear Programming Ltd"
 				required
 				autofocus
-				defaultValue={!form?.success ? form?.orgName : undefined}
+				defaultValue={!form?.success ? form?.workspaceName : undefined}
 			/>
 		</div>
 
 		<div class="flex flex-col gap-2">
-			<Label for="orgDescription" class="text-zinc-600 dark:text-zinc-400">Description</Label>
+			<Label for="workspaceDescription" class="text-zinc-600 dark:text-zinc-400">Description</Label>
 			<Textarea
-				id="orgDescription"
-				name="orgDescription"
+				id="workspaceDescription"
+				name="workspaceDescription"
 				class="text-md bg-muted md:text-sm resize-none"
-				placeholder="Tell us about your organization..."
+				placeholder="Tell us about your workspace..."
 				rows={3}
-				defaultValue={!form?.success ? form?.orgDescription : undefined}
+				defaultValue={!form?.success ? form?.workspaceDescription : undefined}
 			/>
 		</div>
 	{:else if isProfileStep}

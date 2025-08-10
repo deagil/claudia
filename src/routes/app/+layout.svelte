@@ -147,9 +147,9 @@
 										content: `Signed in as ${data.profileData.firstname} ${data.profileData.lastname}`
 									})}
 									{@render ListItem({
-										href: '/app/organisation',
-										title: 'Organisation Settings',
-										content: `Manage settings for ${data.orgData?.name}`
+										href: '/app/workspace',
+										title: 'Workspace Settings',
+										content: `Manage settings for ${data.workspaceData?.name}`
 									})}
 									{@render ListItem({
 										href: '/signout',

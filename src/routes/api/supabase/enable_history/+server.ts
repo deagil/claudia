@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
     try {
         const { app, config } = await request.json();
         const { user } = await locals.safeGetSession();
-        const selectedOrgId = cookies.get('selected-org');
+        const selectedWorkspaceId = cookies.get('selected-workspace');
         const selectedProject = cookies.get('selected_sb_project');
 
         // Validate required parameters
@@ -58,7 +58,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
         // Fetch tables to enable audit logging
         const tablesRes = await fetch(`/api/supabase/tables`, {
             headers: {
-                'Cookie': `selected-org=${selectedOrgId}; selected_sb_project=${selectedProject}`
+                'Cookie': `selected-workspace=${selectedWorkspaceId}; selected_sb_project=${selectedProject}`
             }
         });
 

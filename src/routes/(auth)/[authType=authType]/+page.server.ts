@@ -57,26 +57,26 @@ export const actions = {
             });
         }
 
-		//if the user is not part of an organization, redirect them to the app
+		//if the user is not part of a workspace, redirect them to the app
 		// 1. Get the user ID from the session
         const { data: { user } } = await locals.supabase.auth.getUser();
         if (!user) {
             return fail(400, { success: false, message: 'User not found after auth.' });
         }
 
-		// 2. Check if user is part of any organization
-        const { data: orgs, error: orgError } = await locals.supabase
-            .from('org_users')
-            .select('org_id')
+		// 2. Check if user is part of any workspace
+        const { data: workspaces, error: workspaceError } = await locals.supabase
+            .from('workspace_users')
+            .select('workspace_id')
             .eq('user_id', user.id);
 
-		if (orgError) {
-            return fail(500, { success: false, message: 'Failed to check organization membership.' });
+		if (workspaceError) {
+            return fail(500, { success: false, message: 'Failed to check workspace membership.' });
         }
 
-		 if (!orgs || orgs.length === 0) {
-            // Redirect to org creation page or render org creation form
-            return redirect(303, '/onboarding/org');
+		 if (!workspaces || workspaces.length === 0) {
+            // Redirect to workspace creation page or render workspace creation form
+            return redirect(303, '/onboarding/workspace');
         }
 
         // 3. Check if user's profile is complete

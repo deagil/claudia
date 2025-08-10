@@ -10,13 +10,13 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
     }
     const token = await getUserSupabaseAccessToken(locals);
 
-    // const selectedOrg = cookies.get('supabase_org');
-
     let projects = [];
 
-    //if (selectedOrg) {
-    projects = await getSupabaseProjects(token);
-    //}
+    if (token) {
+        console.log('Fetching Supabase projects...');
+        projects = await getSupabaseProjects(token);
+        console.log('Fetched Supabase projects:', projects);
+    }
 
     return {
         projects,

@@ -3,18 +3,18 @@
 	import SubmitButton from '$lib/components/submit-button.svelte';
 	import { page } from '$app/state';
 
-	let { form } = $props();
+	let { form, data } = $props();
 
-	const step = $derived(page.params.step);
-	const isOrgStep = $derived(step === 'org');
+	const step = $derived(data.step);
+	const isWorkspaceStep = $derived(step === 'workspace');
 	const isProfileStep = $derived(step === 'profile');
 
 	const stepConfig = $derived.by(() => {
-		if (isOrgStep) {
+		if (isWorkspaceStep) {
 			return {
-				title: 'Set up your organization',
+				title: 'Set up your workspace',
 				description: 'Resources and tools are saved in team projects to make them easy to share and manage. Everything here can be changed later.',
-				buttonText: 'Create Organization'
+				buttonText: 'Create Workspace'
 			};
 		} else if (isProfileStep) {
 			return {

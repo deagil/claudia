@@ -32,15 +32,15 @@
 
 	const chatHistory = ChatHistory.fromContext();
 
-	// Debug chat changes
-	$effect(() => {
-		console.log('[Chat] Props updated:', {
-			chatId: chat?.id,
-			chatTitle: chat?.title,
-			initialMessagesCount: initialMessages.length,
-			initialMessages: initialMessages
-		});
-	});
+	// Debug chat changes (remove when no longer needed)
+	// $effect(() => {
+	// 	console.log('[Chat] Props updated:', {
+	// 		chatId: chat?.id,
+	// 		chatTitle: chat?.title,
+	// 		initialMessagesCount: initialMessages.length,
+	// 		initialMessages: initialMessages
+	// 	});
+	// });
 
 	const chatClient = $derived(
 		new Chat({

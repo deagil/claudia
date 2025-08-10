@@ -23,14 +23,14 @@
 	const currentChat = $derived.by(() => chatHistory?.getChatDetails(data?.chat?.id) ?? data?.chat);
 	const chatTitle = $derived.by(() => currentChat?.title ?? 'Chat');
 	
-	// Debug messages being passed to Chat component
-	$effect(() => {
-		console.log('[AppSidebar] Chat data:', {
-			chat: data?.chat ? { title: data.chat.title, id: data.chat.id } : null,
-			messagesCount: data?.messages?.length ?? 0,
-			messages: data?.messages
-		});
-	});
+	// Debug messages being passed to Chat component (remove when no longer needed)
+	// $effect(() => {
+	// 	console.log('[AppSidebar] Chat data:', {
+	// 		chat: data?.chat ? { title: data.chat.title, id: data.chat.id } : null,
+	// 		messagesCount: data?.messages?.length ?? 0,
+	// 		messages: data?.messages
+	// 	});
+	// });
 
 	function handleSelectChat(chatId: string) {
 		// Use the callback if provided, otherwise do nothing

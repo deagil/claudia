@@ -2,6 +2,7 @@ import { myProvider } from '$lib/server/ai/models';
 import { systemPrompt } from '$lib/server/ai/prompts.js';
 import { generateTitleFromUserMessage } from '$lib/server/ai/utils';
 import { deleteChatById, getChatById, saveChat, saveMessages } from '$lib/server/db/queries.js';
+import { logAIUsage } from '$lib/server/ai/usage.js';
 import type { Chat } from '$lib/server/db/schema';
 import { getMostRecentUserMessage, getTrailingMessageId } from '$lib/utils/chat.js';
 import { allowAnonymousChats } from '$lib/utils/constants.js';
@@ -133,7 +134,7 @@ export async function POST({ request, locals: { safeGetSession }, cookies }) {
 				// 		dataStream
 				// 	})
 				// },
-				onFinish: async ({ response }) => {
+				onFinish: async ({ response, usage }) => {
 					if (!user) return;
 					const assistantId = getTrailingMessageId({
 						messages: response.messages.filter((message) => message.role === 'assistant')
@@ -162,6 +163,42 @@ export async function POST({ request, locals: { safeGetSession }, cookies }) {
 							}
 						]
 					});
+
+					// Log AI usage for cost tracking
+					if (usage) {
+						const tokens = usage.totalTokens ?? 0;
+						const promptTokens = usage.promptTokens ?? 0;
+						const completionTokens = usage.completionTokens ?? 0;
+						
+						// Calculate cost based on model pricing (adjust these rates as needed)
+						const inputCostPer1M = 0.10; // $0.10 per 1M input tokens (example rate)
+						const outputCostPer1M = 0.40; // $0.40 per 1M output tokens (example rate)
+						
+						const inputCost = (promptTokens / 1_000_000) * inputCostPer1M;
+						const outputCost = (completionTokens / 1_000_000) * outputCostPer1M;
+						const totalCostUsd = inputCost + outputCost;
+
+						try {
+							await logAIUsage({
+								userId: user.id,
+								feature: 'chat',
+								costUsd: totalCostUsd,
+								tokens,
+								model: response.modelId,
+								metadata: {
+									chat_id: id,
+									prompt_tokens: promptTokens,
+									completion_tokens: completionTokens,
+									input_cost: inputCost,
+									output_cost: outputCost
+								}
+							});
+							logDebug('AI usage logged:', { tokens, cost: totalCostUsd, model: response.modelId });
+						} catch (err) {
+							console.error('Failed to log AI usage:', err);
+							// Don't fail the request if usage logging fails
+						}
+					}
 				},
 				experimental_telemetry: {
 					isEnabled: true,

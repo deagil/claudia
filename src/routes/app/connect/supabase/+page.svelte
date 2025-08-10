@@ -105,7 +105,7 @@
 		error = null;
 
 		try {
-			const res = await fetch('/api/supabase/disconnect-project', {
+			const res = await fetch('/api/supabase/unselect-project', {
 				method: 'POST'
 			});
 
