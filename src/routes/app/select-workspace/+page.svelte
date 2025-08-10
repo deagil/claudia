@@ -18,6 +18,14 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 
+	interface Workspace {
+		id: string;
+		name: string;
+		description?: string;
+		created_at: string;
+		member_count?: number;
+	}
+
 	let loading = $state(false);
 	let error: string | null = $state(null);
 	let selectedWorkspaceId: string | null = $state(null);
@@ -25,6 +33,13 @@
 	const { data } = $props();
 
 	async function selectWorkspace(workspaceId: string, workspaceName: string) {
+		// Add validation to ensure workspaceId is defined
+		if (!workspaceId || workspaceId === 'undefined' || workspaceId === 'null') {
+			console.error('Invalid workspace ID:', workspaceId);
+			error = 'Invalid workspace ID. Please try again.';
+			return;
+		}
+		
 		if (selectedWorkspaceId === workspaceId) return; // Prevent double-selection
 		
 		loading = true;
@@ -47,6 +62,7 @@
 			form.submit();
 			
 		} catch (e) {
+			console.error('Error selecting workspace:', e);
 			error = 'Failed to select workspace';
 			selectedWorkspaceId = null;
 			loading = false;
@@ -56,6 +72,25 @@
 	// Check if user has workspaces available
 	const hasWorkspaces = $derived(() => data.workspaceData && data.workspaceData.length > 0);
 	const userProfile = $derived(() => data.profileData);
+	
+	// Filter out workspaces with undefined IDs and add debugging
+	const validWorkspaces = $derived(() => {
+		if (!data.workspaceData) return [];
+		
+		const valid = (data.workspaceData as Workspace[]).filter((workspace: Workspace) => {
+			if (!workspace.id) {
+				console.error('Found workspace with undefined ID:', workspace);
+				return false;
+			}
+			return true;
+		});
+		
+		if (valid.length !== data.workspaceData.length) {
+			console.warn(`Filtered out ${data.workspaceData.length - valid.length} workspaces with invalid IDs`);
+		}
+		
+		return valid;
+	});
 </script>
 
 <div class="flex min-h-screen flex-col items-center py-8 px-4">
@@ -76,38 +111,50 @@
 		</CardHeader>
 		
 		<CardContent class="flex flex-col items-center gap-6">
-			{#if !hasWorkspaces}
+			{#if data.error}
 				<Alert variant="destructive">
 					<AlertCircleIcon />
-					<AlertTitle>No Workspaces Found</AlertTitle>
+					<AlertTitle>Error Loading Workspaces</AlertTitle>
 					<AlertDescription>
-						You don't have access to any workspaces. Please contact your administrator or create a new workspace.
+						{data.error}. Please try refreshing the page or contact support if the problem persists.
 					</AlertDescription>
 				</Alert>
+			{:else if !validWorkspaces.length}
+			<Alert variant="destructive">
+				<AlertCircleIcon />
+				<AlertTitle>No Valid Workspaces Found</AlertTitle>
+				<AlertDescription>
+					{#if data.workspaceData && data.workspaceData.length > 0}
+						You have workspaces assigned but they appear to be invalid. Please contact your administrator.
+					{:else}
+						You don't have access to any workspaces. Please contact your administrator or create a new workspace.
+					{/if}
+				</AlertDescription>
+			</Alert>
+			
+			<Button onclick={() => goto('/app/create-workspace')} class="cursor-pointer">
+				<BuildingIcon class="mr-2 h-4 w-4" />
+				Create New Workspace
+			</Button>
+		{:else}
+			<div class="w-full space-y-4">
+				<h3 class="text-lg font-semibold text-center mb-4">
+					Available Workspaces ({validWorkspaces.length})
+				</h3>
 				
-				<Button onclick={() => goto('/app/create-workspace')} class="cursor-pointer">
-					<BuildingIcon class="mr-2 h-4 w-4" />
-					Create New Workspace
-				</Button>
-			{:else}
-				<div class="w-full space-y-4">
-					<h3 class="text-lg font-semibold text-center mb-4">
-						Available Workspaces ({data.workspaceData.length})
-					</h3>
-					
-					<div class="grid gap-3">
-						{#each data.workspaceData as workspace}
-							<AlertDialog.Root>
-								<AlertDialog.Trigger class="w-full">
-									<Card class="cursor-pointer transition-all hover:shadow-md hover:border-blue-300 {selectedWorkspaceId === workspace.id ? 'ring-2 ring-blue-500 border-blue-500' : ''} {loading ? 'opacity-50 pointer-events-none' : ''}">
-										<CardContent class="p-4">
-											<div class="flex items-center justify-between">
-												<div class="flex items-center gap-3">
-													<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-														<BuildingIcon class="h-5 w-5 text-gray-600" />
-													</div>
-													<div class="text-left">
-																										<h4 class="font-medium">{workspace.name}</h4>
+								<div class="grid gap-3">
+					{#each validWorkspaces as workspace (workspace.id)}
+						<AlertDialog.Root>
+							<AlertDialog.Trigger class="w-full">
+								<Card class="cursor-pointer transition-all hover:shadow-md hover:border-blue-300 {selectedWorkspaceId === workspace.id ? 'ring-2 ring-blue-500 border-blue-500' : ''} {loading ? 'opacity-50 pointer-events-none' : ''}">
+									<CardContent class="p-4">
+										<div class="flex items-center justify-between">
+											<div class="flex items-center gap-3">
+												<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+													<BuildingIcon class="h-5 w-5 text-gray-600" />
+												</div>
+												<div class="text-left">
+																									<h4 class="font-medium">{workspace.name}</h4>
 												{#if workspace.description}
 													<p class="text-sm text-gray-600">{workspace.description}</p>
 												{/if}
