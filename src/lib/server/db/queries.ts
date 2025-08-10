@@ -31,7 +31,7 @@ import { unwrapSingleQueryResult } from './utils';
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(PRIVATE_POSTGRES_URL);
-const db = drizzle(client);
+export const db = drizzle(client);
 
 export function getAuthUser(email: string): ResultAsync<AuthUser, DbError> {
 	return safeTry(async function* () {

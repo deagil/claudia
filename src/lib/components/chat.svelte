@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { Chat } from '@ai-sdk/svelte';
-	import type { Attachment } from 'ai';
+	import { DefaultChatTransport } from 'ai';
 	import { toast } from 'svelte-sonner';
 	import { ChatHistory } from '$lib/hooks/chat-history.svelte';
 	import ChatHeader from './chat-header.svelte';
 	import type { Chat as DbChat, User } from '$lib/server/db/schema';
 	import Messages from './messages.svelte';
 	import MultimodalInput from './multimodal-input.svelte';
-	import { untrack } from 'svelte';
-	import type { UIMessage } from '@ai-sdk/svelte';
+	import type { UIMessage } from 'ai';
 	import {
 		SIDEBAR_COOKIE_MAX_AGE,
 		SIDEBAR_COOKIE_NAME,
@@ -32,27 +31,18 @@
 
 	const chatHistory = ChatHistory.fromContext();
 
-	// Debug chat changes (remove when no longer needed)
-	// $effect(() => {
-	// 	console.log('[Chat] Props updated:', {
-	// 		chatId: chat?.id,
-	// 		chatTitle: chat?.title,
-	// 		initialMessagesCount: initialMessages.length,
-	// 		initialMessages: initialMessages
-	// 	});
-	// });
-
 	const chatClient = $derived(
 		new Chat({
 			id: chat?.id,
-			// Allow initialMessages to be reactive so the chat updates when switching between chats
-			initialMessages: initialMessages,
-			sendExtraMessageFields: true,
+			messages: initialMessages,
+			transport: new DefaultChatTransport({
+				api: '/api/chat',
+			}),
 			generateId: crypto.randomUUID.bind(crypto),
 			onFinish: async () => {
 				await chatHistory.refetch();
 			},
-			onError: (error) => {
+			onError: (error: Error) => {
 				try {
 					// If there's an API error, its message will be JSON-formatted
 					const jsonError = JSON.parse(error.message);
@@ -74,7 +64,7 @@
 		})
 	);
 
-	let attachments = $state<Attachment[]>([]);
+	let attachments = $state<any[]>([]);
 </script>
 
 <!-- This component is responsible for rendering the chat interface, including the header, messages, and input form. -->

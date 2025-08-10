@@ -8,7 +8,7 @@
 	import { Markdown } from '../markdown';
 	import MessageReasoning from '../message-reasoning.svelte';
 	import { fly } from 'svelte/transition';
-	import type { UIMessage } from '@ai-sdk/svelte';
+	import type { UIMessage } from 'ai';
 
 	let { message, readonly, loading }: { message: UIMessage; readonly: boolean; loading: boolean } =
 		$props();
@@ -41,18 +41,10 @@
 		{/if}
 
 		<div class="flex w-full flex-col gap-4">
-			{#if message.experimental_attachments && message.experimental_attachments.length > 0}
-				<div class="flex flex-row justify-end gap-2">
-					{#each message.experimental_attachments as attachment (attachment.url)}
-						<PreviewAttachment {attachment} />
-					{/each}
-				</div>
-			{/if}
-
 			{#each message.parts as part, i (`${message.id}-${i}`)}
 				{@const { type } = part}
 				{#if type === 'reasoning'}
-					<MessageReasoning {loading} reasoning={part.reasoning} />
+					<MessageReasoning {loading} reasoning={part.text} />
 				{:else if type === 'text'}
 					{#if mode === 'view'}
 						<div class="flex flex-row items-start gap-2">

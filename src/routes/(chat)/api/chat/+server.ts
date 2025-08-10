@@ -4,21 +4,19 @@ import { generateTitleFromUserMessage } from '$lib/server/ai/utils';
 import { deleteChatById, getChatById, saveChat, saveMessages } from '$lib/server/db/queries.js';
 import { logAIUsage } from '$lib/server/ai/usage.js';
 import type { Chat } from '$lib/server/db/schema';
-import { getMostRecentUserMessage, getTrailingMessageId } from '$lib/utils/chat.js';
+import { getMostRecentUserMessage } from '$lib/utils/chat.js';
 import { allowAnonymousChats } from '$lib/utils/constants.js';
 import { error } from '@sveltejs/kit';
 import {
-	appendResponseMessages,
-	createDataStreamResponse,
-	smoothStream,
 	streamText,
+	convertToModelMessages,
 	type UIMessage
 } from 'ai';
 import { ok, safeTry } from 'neverthrow';
 
 const DEBUG = true;
 
-function logDebug(...args: any[]) {
+function logDebug(...args: unknown[]) {
 	if (DEBUG) {
 		console.debug('[DEBUG]', ...args);
 	}
@@ -82,25 +80,9 @@ export async function POST({ request, locals: { safeGetSession }, cookies }) {
         error(403, 'Forbidden');
     }
 
-    logDebug('Saving user message:', userMessage);
-    try {
-        yield* saveMessages({
-            messages: [
-                {
-                    chat_id: id,
-                    id: userMessage.id,
-                    role: 'user',
-                    parts: userMessage.parts,
-                    attachments: userMessage.experimental_attachments ?? [],
-                    created_at: new Date()
-                }
-            ]
-        });
-        logDebug('User message saved successfully');
-    } catch (e) {
-        console.error('Error saving user message:', e);
-        throw e;
-    }
+    // Note: User message will be saved by the Chat class automatically
+    // No need to save it here to avoid duplicate key errors
+    logDebug('User message will be saved by Chat class');
 
     return ok(undefined);
 }).orElse((err) => {
@@ -110,114 +92,92 @@ export async function POST({ request, locals: { safeGetSession }, cookies }) {
 });
 	}
 
-	return createDataStreamResponse({
-		execute: (dataStream) => {
-			const result = streamText({
-				model: myProvider.languageModel(selectedChatModel),
-				system: systemPrompt({ selectedChatModel }),
-				messages,
-				maxSteps: 5,
-				experimental_activeTools: [],
-				// TODO
-				// selectedChatModel === 'chat-model-reasoning'
-				// 	? []
-				// 	: ['getWeather', 'createDocument', 'updateDocument', 'requestSuggestions'],
-				experimental_transform: smoothStream({ chunking: 'word' }),
-				experimental_generateMessageId: crypto.randomUUID.bind(crypto),
-				// TODO
-				// tools: {
-				// 	getWeather,
-				// 	createDocument: createDocument({ session, dataStream }),
-				// 	updateDocument: updateDocument({ session, dataStream }),
-				// 	requestSuggestions: requestSuggestions({
-				// 		session,
-				// 		dataStream
-				// 	})
-				// },
-				onFinish: async ({ response, usage }) => {
-					if (!user) return;
-					const assistantId = getTrailingMessageId({
-						messages: response.messages.filter((message) => message.role === 'assistant')
-					});
-					logDebug('Assistant message ID:', assistantId);
-
-					if (!assistantId) {
-						throw new Error('No assistant message found!');
-					}
-
-					const [, assistantMessage] = appendResponseMessages({
-						messages: [userMessage],
-						responseMessages: response.messages
-					});
-					logDebug('Assistant message to save:', assistantMessage);
-
+	const result = await streamText({
+		model: myProvider.languageModel(selectedChatModel),
+		system: systemPrompt({ selectedChatModel }),
+		messages: convertToModelMessages(messages),
+		// TODO
+		// selectedChatModel === 'chat-model-reasoning'
+		// 	? []
+		// 	: ['getWeather', 'createDocument', 'updateDocument', 'requestSuggestions'],
+		// TODO
+		// tools: {
+		// 	getWeather,
+		// 	createDocument: createDocument({ session, dataStream }),
+		// 	updateDocument: updateDocument({ session, dataStream }),
+		// 	requestSuggestions: requestSuggestions({
+		// 		session,
+		// 		dataStream
+		// 	})
+		// },
+		onFinish: async ({ response, usage }) => {
+			if (!user) return;
+			
+			// Save the assistant message
+			// In AI SDK 5.0, the response structure has changed
+			// We need to convert the model messages back to UI messages for storage
+			const assistantMessages = response.messages.filter(msg => msg.role === 'assistant');
+			if (assistantMessages.length > 0) {
+				const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
+				try {
 					await saveMessages({
 						messages: [
 							{
-								id: assistantId,
+								id: crypto.randomUUID(),
 								chat_id: id,
-								role: assistantMessage.role,
-								parts: assistantMessage.parts,
-								attachments: assistantMessage.experimental_attachments ?? [],
+								role: 'assistant',
+								parts: lastAssistantMessage.content || [],
+								attachments: [],
 								created_at: new Date()
 							}
 						]
 					});
-
-					// Log AI usage for cost tracking
-					if (usage) {
-						const tokens = usage.totalTokens ?? 0;
-						const promptTokens = usage.promptTokens ?? 0;
-						const completionTokens = usage.completionTokens ?? 0;
-						
-						// Calculate cost based on model pricing (adjust these rates as needed)
-						const inputCostPer1M = 0.10; // $0.10 per 1M input tokens (example rate)
-						const outputCostPer1M = 0.40; // $0.40 per 1M output tokens (example rate)
-						
-						const inputCost = (promptTokens / 1_000_000) * inputCostPer1M;
-						const outputCost = (completionTokens / 1_000_000) * outputCostPer1M;
-						const totalCostUsd = inputCost + outputCost;
-
-						try {
-							await logAIUsage({
-								userId: user.id,
-								feature: 'chat',
-								costUsd: totalCostUsd,
-								tokens,
-								model: response.modelId,
-								metadata: {
-									chat_id: id,
-									prompt_tokens: promptTokens,
-									completion_tokens: completionTokens,
-									input_cost: inputCost,
-									output_cost: outputCost
-								}
-							});
-							logDebug('AI usage logged:', { tokens, cost: totalCostUsd, model: response.modelId });
-						} catch (err) {
-							console.error('Failed to log AI usage:', err);
-							// Don't fail the request if usage logging fails
-						}
-					}
-				},
-				experimental_telemetry: {
-					isEnabled: true,
-					functionId: 'stream-text'
+					logDebug('Assistant message saved successfully');
+				} catch (e) {
+					console.error('Error saving assistant message:', e);
+					// Don't fail the request if message saving fails
 				}
-			});
+			}
 
-			result.consumeStream();
+			// Log AI usage for cost tracking
+			if (usage) {
+				const tokens = usage.totalTokens ?? 0;
+				const promptTokens = usage.inputTokens ?? 0;
+				const completionTokens = usage.outputTokens ?? 0;
+				
+				// Calculate cost based on model pricing (adjust these rates as needed)
+				const inputCostPer1M = 0.10; // $0.10 per 1M input tokens (example rate)
+				const outputCostPer1M = 0.40; // $0.40 per 1M output tokens (example rate)
+				
+				const inputCost = (promptTokens / 1_000_000) * inputCostPer1M;
+				const outputCost = (completionTokens / 1_000_000) * outputCostPer1M;
+				const totalCostUsd = inputCost + outputCost;
 
-			result.mergeIntoDataStream(dataStream, {
-				sendReasoning: true
-			});
-		},
-		onError: (e) => {
-			logDebug('Stream execution error:', e);
-			console.error(e);
-			return 'Oops!';
+				try {
+					await logAIUsage({
+						userId: user.id,
+						feature: 'chat',
+						costUsd: totalCostUsd,
+						tokens,
+						model: response.modelId,
+						metadata: {
+							chat_id: id,
+							prompt_tokens: promptTokens,
+							completion_tokens: completionTokens,
+							input_cost: inputCost,
+							output_cost: outputCost
+						}
+					});
+					logDebug('AI usage logged:', { tokens, cost: totalCostUsd, model: response.modelId });
+				} catch (err) {
+					console.error('Failed to log AI usage:', err);
+					// Don't fail the request if usage logging fails
+				}
+			}
 		}
 	});
+
+	return result.toUIMessageStreamResponse();
 }
 
 export async function DELETE({ locals: { safeGetSession }, request }) {

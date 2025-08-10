@@ -6,7 +6,6 @@
 	import { onMount } from 'svelte';
 	import { LocalStorage } from '$lib/hooks/local-storage.svelte';
 	import { innerWidth } from 'svelte/reactivity/window';
-	import type { Attachment } from 'ai';
 	import { toast } from 'svelte-sonner';
 	import { Button } from './ui/button';
 	import PaperclipIcon from './icons/paperclip.svelte';
@@ -22,7 +21,7 @@
 		chatClient,
 		class: c
 	}: {
-		attachments: Attachment[];
+		attachments: any[];
 		user: User | undefined;
 		chatClient: Chat;
 		class?: string;
@@ -32,6 +31,7 @@
 	let textareaRef = $state<HTMLTextAreaElement | null>(null);
 	let fileInputRef = $state<HTMLInputElement | null>(null);
 	let uploadQueue = $state<string[]>([]);
+	let inputValue = $state('');
 	const storedInput = new LocalStorage('input', '');
 	const loading = $derived(chatClient.status === 'streaming' || chatClient.status === 'submitted');
 
@@ -50,20 +50,34 @@
 	};
 
 	function setInput(value: string) {
-		chatClient.input = value;
+		inputValue = value;
 		adjustHeight();
 	}
 
 	async function submitForm(event?: Event) {
+		if (event) {
+			event.preventDefault();
+		}
+
 		if (user) {
 			replaceState(`/chat/${chatClient.id}`, {});
 		}
 
-		await chatClient.handleSubmit(event, {
-			experimental_attachments: attachments
-		});
+		if (inputValue.trim()) {
+			// Use the sendMessage method from the Chat class
+			try {
+				await chatClient.sendMessage({
+					text: inputValue,
+					files: attachments
+				});
+			} catch (error) {
+				console.error('Error sending message:', error);
+				toast.error('Failed to send message');
+			}
+		}
 
 		attachments = [];
+		inputValue = '';
 		resetHeight();
 
 		if (innerWidth.current && innerWidth.current > 768) {
@@ -122,13 +136,13 @@
 	}
 
 	onMount(() => {
-		chatClient.input = storedInput.value;
+		inputValue = storedInput.value;
 		adjustHeight();
 		mounted = true;
 	});
 
 	$effect.pre(() => {
-		storedInput.value = chatClient.input;
+		storedInput.value = inputValue;
 	});
 </script>
 
@@ -168,7 +182,7 @@
 	<Textarea
 		bind:ref={textareaRef}
 		placeholder="Send a message..."
-		bind:value={() => chatClient.input, setInput}
+		bind:value={inputValue}
 		class={cn(
 			'bg-background max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl pb-10 !text-base dark:border-zinc-700',
 			c
@@ -220,8 +234,7 @@
 		class="h-fit rounded-full border p-1.5 dark:border-zinc-600"
 		onclick={(event) => {
 			event.preventDefault();
-			stop();
-			chatClient.messages = chatClient.messages;
+			chatClient.stop();
 		}}
 	>
 		<StopIcon size={14} />
@@ -235,7 +248,7 @@
 			event.preventDefault();
 			submitForm();
 		}}
-		disabled={chatClient.input.length === 0 || uploadQueue.length > 0}
+		disabled={inputValue.length === 0 || uploadQueue.length > 0}
 	>
 		<ArrowUpIcon size={14} />
 	</Button>

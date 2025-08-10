@@ -2,14 +2,14 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { customProvider, extractReasoningMiddleware, wrapLanguageModel } from 'ai';
 import { PRIVATE_OPENAI_KEY } from '$env/static/private';
 
-const openai = createOpenAI({ apiKey: PRIVATE_OPENAI_KEY, compatibility: 'strict' });
+const openai = createOpenAI({ apiKey: PRIVATE_OPENAI_KEY });
 
 export const myProvider = customProvider({
 	languageModels: {
-		'title-model': openai('gpt-4.1-nano'),
-		'chat-model': openai('gpt-4.1-nano'),
+		'title-model': openai('gpt-4o-mini'),
+		'chat-model': openai('gpt-4o-mini'),
 		'chat-model-reasoning': wrapLanguageModel({
-			model: openai('o4-mini'),
+			model: openai('gpt-4o-mini'),
 			middleware: extractReasoningMiddleware({ tagName: 'think' })
 		}),
 	},

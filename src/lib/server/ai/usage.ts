@@ -1,5 +1,5 @@
 import { aiUsage } from '$lib/server/db/schema.js';
-import { db } from '$lib/server/db/utils.js';
+import { db } from '$lib/server/db/queries.js';
 
 export interface LogAIUsageParams {
 	userId: string;
