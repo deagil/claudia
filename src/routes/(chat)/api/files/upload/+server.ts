@@ -1,7 +1,9 @@
 import { error } from '@sveltejs/kit';
 import { z } from 'zod';
 import { put } from '@vercel/blob';
-import { BLOB_READ_WRITE_TOKEN } from '$env/static/private';
+
+// Make the token optional to handle missing environment variable
+const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 
 const FileSchema = z.object({
 	file: z
@@ -22,6 +24,11 @@ export async function POST({ request, locals: { user } }) {
 
 	if (request.body === null) {
 		error(400, 'Empty file received');
+	}
+
+	// Check if blob storage is configured
+	if (!BLOB_READ_WRITE_TOKEN) {
+		return error(503, 'File upload service is not configured');
 	}
 
 	try {
