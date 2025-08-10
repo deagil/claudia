@@ -71,26 +71,6 @@
 
 	// Check if user has workspaces available
 	const hasWorkspaces = $derived(() => data.workspaceData && data.workspaceData.length > 0);
-	const userProfile = $derived(() => data.profileData);
-	
-	// Filter out workspaces with undefined IDs and add debugging
-	const validWorkspaces = $derived(() => {
-		if (!data.workspaceData) return [];
-		
-		const valid = (data.workspaceData as Workspace[]).filter((workspace: Workspace) => {
-			if (!workspace.id) {
-				console.error('Found workspace with undefined ID:', workspace);
-				return false;
-			}
-			return true;
-		});
-		
-		if (valid.length !== data.workspaceData.length) {
-			console.warn(`Filtered out ${data.workspaceData.length - valid.length} workspaces with invalid IDs`);
-		}
-		
-		return valid;
-	});
 </script>
 
 <div class="flex min-h-screen flex-col items-center py-8 px-4">
@@ -101,7 +81,7 @@
 			</div>
 			<CardTitle class="text-2xl text-center">Select Your Workspace</CardTitle>
 			<CardDescription class="text-center max-w-md">
-				{#if data.profileData.firstname}
+				{#if data.profileData && data.profileData.firstname}
 					Welcome back, {data.profileData.firstname}!
 				{:else}
 					Welcome!
@@ -119,7 +99,7 @@
 						{data.error}. Please try refreshing the page or contact support if the problem persists.
 					</AlertDescription>
 				</Alert>
-			{:else if !validWorkspaces.length}
+			{:else if !hasWorkspaces}
 			<Alert variant="destructive">
 				<AlertCircleIcon />
 				<AlertTitle>No Valid Workspaces Found</AlertTitle>
@@ -139,11 +119,11 @@
 		{:else}
 			<div class="w-full space-y-4">
 				<h3 class="text-lg font-semibold text-center mb-4">
-					Available Workspaces ({validWorkspaces.length})
+					Available Workspaces ({data.workspaceData.length})
 				</h3>
 				
 								<div class="grid gap-3">
-					{#each validWorkspaces as workspace (workspace.id)}
+					{#each data.workspaceData as workspace (workspace.id)}
 						<AlertDialog.Root>
 							<AlertDialog.Trigger class="w-full">
 								<Card class="cursor-pointer transition-all hover:shadow-md hover:border-blue-300 {selectedWorkspaceId === workspace.id ? 'ring-2 ring-blue-500 border-blue-500' : ''} {loading ? 'opacity-50 pointer-events-none' : ''}">

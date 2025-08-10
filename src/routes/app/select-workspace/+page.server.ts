@@ -77,6 +77,9 @@ export async function load({ cookies, locals }) {
     // Load user profile with error handling
     let profileData = null;
     try {
+      console.log('Loading user profile for user ID:', user.id);
+      console.log('User object from session:', { id: user.id, email: user.email });
+      
       const { data, error } = await supabase
         .from('users')
         .select('firstname, lastname, avatar_url')
@@ -85,14 +88,25 @@ export async function load({ cookies, locals }) {
       
       if (error) {
         console.error('Error loading user profile:', error);
-        // Continue with null profile data
-        profileData = null;
+        console.log('This might indicate the user exists in auth but not in the users table');
+        // Use auth user data as fallback
+        profileData = {
+          firstname: user.user_metadata?.first_name || user.user_metadata?.name || null,
+          lastname: user.user_metadata?.last_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null
+        };
       } else {
         profileData = data;
+        console.log('Successfully loaded user profile:', profileData);
       }
     } catch (error) {
       console.error('Error processing user profile:', error);
-      profileData = null;
+      // Use auth user data as fallback
+      profileData = {
+        firstname: user.user_metadata?.first_name || user.user_metadata?.name || null,
+        lastname: user.user_metadata?.last_name || null,
+        avatar_url: user.user_metadata?.avatar_url || null
+      };
     }
 
     // Load user's workspaces with additional info
@@ -115,6 +129,7 @@ export async function load({ cookies, locals }) {
           workspaceData = [];
         } else {
           workspaceData = data || [];
+          console.log('Raw workspace data from database:', workspaceData);
           
           // Debug: Check for workspaces with undefined IDs
           if (data) {
@@ -122,13 +137,19 @@ export async function load({ cookies, locals }) {
             if (invalidWorkspaces.length > 0) {
               console.error('Found workspaces with undefined IDs:', invalidWorkspaces);
             }
-            console.log('Loaded workspaces:', data.map(ws => ({ id: ws.id, name: ws.name })));
+            const workspacesWithoutNames = data.filter(ws => !ws.name);
+            if (workspacesWithoutNames.length > 0) {
+              console.error('Found workspaces without names:', workspacesWithoutNames);
+            }
+            console.log('Loaded workspaces:', data.map(ws => ({ id: ws.id, name: ws.name, description: ws.description })));
           }
         }
       } catch (error) {
         console.error('Error processing workspaces:', error);
         workspaceData = [];
       }
+    } else {
+      console.log('No workspace IDs found for user');
     }
 
     // If user has no workspaces, they might need to create one or be invited
